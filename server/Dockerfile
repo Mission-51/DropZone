@@ -1,5 +1,5 @@
-# Amazon Corretto 17 이미지 사용
-FROM amazoncorretto:17.0.12
+# openjdk:17 이미지 사용
+FROM openjdk:17-jdk-slim
 
 # 빌드된 JAR 파일의 경로를 ARG로 설정
 ARG JAR_FILE=build/libs/*.jar
