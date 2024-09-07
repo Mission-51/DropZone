@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:stable'  // Docker 명령을 실행하기 위한 Docker 이미지를 지정
+            args '-v /var/run/docker.sock:/var/run/docker.sock'  // Docker 소켓을 공유하여 Docker 명령 사용
+        }
 
     environment {
         GIT_CREDENTIALS = credentials('Dropzone')  // GitLab 자격증명
