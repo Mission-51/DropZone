@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController {
     @GetMapping("/test")
     public String test() {
-        return "제발되라....제발제발제발제발다시" +
+        return "제발되라....제발제발제발제발다시다시" +
                 "황준, 손동희, 김동준, 차상곤, 박재영, 김헌규 레츠고!";
     }
 }
