@@ -5,7 +5,7 @@ FROM openjdk:17
 RUN ln -snf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && echo Asia/Seoul > /etc/timezone
 
 # 빌드된 JAR 파일의 경로를 ARG로 설정
-ARG JAR_FILE=build/libs/me.heongyukim-1.0-SNAPSHOT.jar
+ARG JAR_FILE=build/libs/S11P21D110-1.0-SNAPSHOT.jar
 
 # JAR 파일을 컨테이너에 복사
 COPY ${JAR_FILE} app.jar
