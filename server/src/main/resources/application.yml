@@ -35,7 +35,7 @@ spring:
 jasypt:
   encryptor:
     bean: jasyptStringEncryptor
-    key: ${JASYPT_KEY}
+    key: 110110
 
   redis:
     host: redis-container
