@@ -67,6 +67,9 @@ dependencies {
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
 }
 
+application {
+    mainClass = 'com.dropzone.DropZone_BackEnd.DropZoneBackEndApplication'
+}
 
 tasks.named('test') {
     useJUnitPlatform()
