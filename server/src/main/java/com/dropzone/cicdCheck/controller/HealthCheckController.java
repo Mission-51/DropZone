@@ -1,4 +1,4 @@
-package me.heongyukim.springbootdeveloper;
+package com.dropzone.cicdCheck.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
