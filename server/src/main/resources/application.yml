@@ -34,7 +34,6 @@ spring:
 
 jasypt:
   encryptor:
-    bean: jasyptStringEncryptor
     key: ${JASYPT_KEY}
 
   redis:
