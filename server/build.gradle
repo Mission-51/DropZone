@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.2'
     id 'io.spring.dependency-management' version '1.1.4'
-    id 'application'
 }
 
 group = 'io.security'
@@ -66,10 +65,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'jakarta.mail:jakarta.mail-api:2.0.1'
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
-}
-
-application {
-    mainClass = 'com.dropzone.DropZone_BackEnd.DropZoneBackEndApplication'
 }
 
 tasks.named('test') {
