@@ -32,10 +32,10 @@ spring:
   thymeleaf:
     cache: false  # Thymeleaf 캐시 비활성화
 
-jasypt:
-  encryptor:
-    bean: jasyptStringEncryptor
-    key: ${JASYPT_KEY}
+# jasypt:
+#   encryptor:
+#     bean: jasyptStringEncryptor
+#     key: ${JASYPT_KEY}
 
   redis:
     host: redis-container
