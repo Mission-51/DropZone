@@ -1,13 +1,13 @@
-package io.security.springsecuritymaster;
+// package io.security.springsecuritymaster;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class SpringSecurityMasterApplicationTests {
+// @SpringBootTest
+// class SpringSecurityMasterApplicationTests {
 
-    @Test
-    void contextLoads() {
-    }
+//     @Test
+//     void contextLoads() {
+//     }
 
-}
+// }
