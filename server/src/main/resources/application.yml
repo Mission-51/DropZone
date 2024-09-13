@@ -34,8 +34,7 @@ spring:
 
 jasypt:
   encryptor:
-    bean: jasyptStringEncryptor
-    key: 110110
+    password: Dr@pZoneKey2024!@#$
 
   redis:
     host: redis-container
