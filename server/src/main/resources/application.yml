@@ -18,7 +18,7 @@ spring:
             enable: true
   jpa:
     hibernate:
-      ddl-auto: validate  # 서버 환경에 맞게 테이블 검증
+      ddl-auto: auto  # 서버 환경에 맞게 테이블 검증
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect  # MySQL용 Hibernate Dialect 추가
