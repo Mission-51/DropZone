@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update  # 또는 create-drop (테스트 후 DB 삭제)
+    show-sql: true  # SQL 로그 출력
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+  jasypt:
+    encryptor:
+      bean: jasyptStringEncryptor
+      key: ${JASYPT_KEY}

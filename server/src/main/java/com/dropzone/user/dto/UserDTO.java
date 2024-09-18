@@ -1,6 +1,8 @@
 package com.dropzone.user.dto;
 
 import com.dropzone.user.entity.UserEntity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.*;
 
 import java.time.LocalDateTime;
