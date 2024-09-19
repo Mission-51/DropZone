@@ -2,6 +2,7 @@ package com.dropzone.character.service;
 
 import com.dropzone.character.dto.CharacterDTO;
 import com.dropzone.character.entity.CharacterEntity;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -15,6 +16,9 @@ public interface CharacterService {
 
     // 캐릭터 정보 수정
     void updateCharacter(Long characterId, CharacterDTO characterDTO);
+
+    @Transactional
+    CharacterEntity updateCharacterDTOFields(CharacterEntity updateCharacterEntity, CharacterDTO characterDTO);
 
     // 캐릭터 삭제
     void deleteCharacter(Long characterId);

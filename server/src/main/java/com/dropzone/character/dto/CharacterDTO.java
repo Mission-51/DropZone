@@ -1,5 +1,11 @@
 package com.dropzone.character.dto;
 
+import com.dropzone.character.entity.CharacterEntity;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class CharacterDTO {
 
     private Long characterId;
@@ -17,75 +23,18 @@ public class CharacterDTO {
     public CharacterDTO() {
     }
 
-    public Long getCharacterId() {
-        return characterId;
+    public static CharacterDTO toCharacterDTO(CharacterEntity characterEntity) {
+        CharacterDTO characterDTO = new CharacterDTO();
+        characterDTO.setCharacterId(characterEntity.getCharacterId());
+        characterDTO.setCharacterName(characterEntity.getCharacterName());
+        characterDTO.setCharacterWeapon(characterDTO.getCharacterWeapon());
+        characterDTO.setCharacterValue(characterEntity.getCharacterValue());
+        characterDTO.setCharacterStrength(characterEntity.getCharacterStrength());
+        characterDTO.setCharacterSpeed(characterEntity.getCharacterSpeed());
+        characterDTO.setCharacterHP(characterEntity.getCharacterHP());
+        characterDTO.setCharacterDefensive(characterEntity.getCharacterDefensive());
+        characterDTO.setCharacterContent(characterEntity.getCharacterContent());
+        return characterDTO;
     }
 
-    public void setCharacterId(Long characterId) {
-        this.characterId = characterId;
-    }
-
-    public String getCharacterName() {
-        return characterName;
-    }
-
-    public void setCharacterName(String characterName) {
-        this.characterName = characterName;
-    }
-
-    public String getCharacterWeapon() {
-        return characterWeapon;
-    }
-
-    public void setCharacterWeapon(String characterWeapon) {
-        this.characterWeapon = characterWeapon;
-    }
-
-    public int getCharacterValue() {
-        return characterValue;
-    }
-
-    public void setCharacterValue(int characterValue) {
-        this.characterValue = characterValue;
-    }
-
-    public int getCharacterStrength() {
-        return characterStrength;
-    }
-
-    public void setCharacterStrength(int characterStrength) {
-        this.characterStrength = characterStrength;
-    }
-
-    public int getCharacterSpeed() {
-        return characterSpeed;
-    }
-
-    public void setCharacterSpeed(int characterSpeed) {
-        this.characterSpeed = characterSpeed;
-    }
-
-    public int getCharacterHP() {
-        return characterHP;
-    }
-
-    public void setCharacterHP(int characterHP) {
-        this.characterHP = characterHP;
-    }
-
-    public int getCharacterDefensive() {
-        return characterDefensive;
-    }
-
-    public void setCharacterDefensive(int characterDefensive) {
-        this.characterDefensive = characterDefensive;
-    }
-
-    public String getCharacterContent() {
-        return characterContent;
-    }
-
-    public void setCharacterContent(String characterContent) {
-        this.characterContent = characterContent;
-    }
 }
