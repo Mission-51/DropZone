@@ -3,6 +3,7 @@ package com.dropzone.user.controller;
 import com.dropzone.auth.jwt.JwtTokenProvider;
 import com.dropzone.user.dto.UserDTO;
 import com.dropzone.user.dto.UserSearchDTO;
+import com.dropzone.user.dto.UserUpdateDTO;
 import com.dropzone.user.service.EmailService;
 import com.dropzone.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -239,31 +240,71 @@ public class UserController {
 
     // 회원 정보 수정
     @Operation(summary = "회원 정보 수정 API", description = "회원 정보 수정")
-    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/update")
     public ResponseEntity<?> updateUser(
             @RequestHeader("Authorization") String token,
-            @RequestPart("user") UserDTO updateUserDTO
-    ) {
-        log.info("회원 정보 수정 요청: email={}", updateUserDTO.getUserEmail());
+            @RequestBody UserUpdateDTO userUpdateDTO
+            ) {
+        log.info("회원 정보 수정 요청: email={}");
         try {
+            // JWT에서 이메일 추출
             String jwtToken = token.replace("Bearer ", "");
             String userEmail = JwtTokenProvider.getEmailFromToken(jwtToken);
 
+            // 이메일로 기존 사용자 조회
             UserDTO existingUserDTO = userService.searchByEmail(userEmail);
             if (existingUserDTO == null) {
                 log.warn("회원 정보 수정 실패: 인증되지 않은 사용자");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다");
             }
 
-            userService.updateUser(existingUserDTO.getUserId(), updateUserDTO);
+            // 수정 가능한 필드만 업데이트
+            if (userUpdateDTO.getUserPassword() != null && !userUpdateDTO.getUserPassword().isEmpty()) {
+                existingUserDTO.setUserPassword(userUpdateDTO.getUserPassword());
+            }
+            if (userUpdateDTO.getUserNickname() != null && !userUpdateDTO.getUserNickname().isEmpty()) {
+                existingUserDTO.setUserNickname(userUpdateDTO.getUserNickname());
+            }
+            if (userUpdateDTO.getUserProfileImage() != null && !userUpdateDTO.getUserProfileImage().isEmpty()) {
+                existingUserDTO.setUserProfileImage(userUpdateDTO.getUserProfileImage());
+            }
+
+            // 수정된 사용자 정보 저장
+            userService.updateUser(existingUserDTO.getUserId(), existingUserDTO);
             log.info("회원 정보 수정 성공: email={}", userEmail);
             return ResponseEntity.ok("회원 정보 수정에 성공했습니다");
 
         } catch (Exception e) {
-            log.error("회원 정보 수정 중 오류 발생: email={}", updateUserDTO.getUserEmail(), e);
+            log.error("회원 정보 수정 중 오류 발생: email={}", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 입니다");
         }
     }
+//    @Operation(summary = "회원 정보 수정 API", description = "회원 정보 수정")
+//    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<?> updateUser(
+//            @RequestHeader("Authorization") String token,
+//            @RequestPart("user") UserDTO updateUserDTO
+//    ) {
+//        log.info("회원 정보 수정 요청: email={}", updateUserDTO.getUserEmail());
+//        try {
+//            String jwtToken = token.replace("Bearer ", "");
+//            String userEmail = JwtTokenProvider.getEmailFromToken(jwtToken);
+//
+//            UserDTO existingUserDTO = userService.searchByEmail(userEmail);
+//            if (existingUserDTO == null) {
+//                log.warn("회원 정보 수정 실패: 인증되지 않은 사용자");
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다");
+//            }
+//
+//            userService.updateUser(existingUserDTO.getUserId(), updateUserDTO);
+//            log.info("회원 정보 수정 성공: email={}", userEmail);
+//            return ResponseEntity.ok("회원 정보 수정에 성공했습니다");
+//
+//        } catch (Exception e) {
+//            log.error("회원 정보 수정 중 오류 발생: email={}", updateUserDTO.getUserEmail(), e);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 입니다");
+//        }
+//    }
 
     // 회원 탈퇴
     @Operation(summary = "회원 탈퇴 API", description = "회원 탈퇴")
