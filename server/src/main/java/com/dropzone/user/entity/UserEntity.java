@@ -67,7 +67,6 @@ public class UserEntity extends BaseEntity {
         userEntity.setUserEmail(userDTO.getUserEmail());  // 이메일 설정
         userEntity.setUserNickname(userDTO.getUserNickname());  // 닉네임 설정
         userEntity.setUserProfileImage(userDTO.getUserProfileImage());  // 프로필 이미지 설정 (선택적)
-        userEntity.setUserProfileImage(userDTO.getUserProfileImage());  // 프로필 이미지 설정 (선택적)
         // 나머지 필드들은 DB 기본값에 의해 자동으로 설정되므로 따로 설정하지 않음
 
         return userEntity;
