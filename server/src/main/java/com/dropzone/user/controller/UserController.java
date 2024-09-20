@@ -279,32 +279,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 입니다");
         }
     }
-//    @Operation(summary = "회원 정보 수정 API", description = "회원 정보 수정")
-//    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<?> updateUser(
-//            @RequestHeader("Authorization") String token,
-//            @RequestPart("user") UserDTO updateUserDTO
-//    ) {
-//        log.info("회원 정보 수정 요청: email={}", updateUserDTO.getUserEmail());
-//        try {
-//            String jwtToken = token.replace("Bearer ", "");
-//            String userEmail = JwtTokenProvider.getEmailFromToken(jwtToken);
-//
-//            UserDTO existingUserDTO = userService.searchByEmail(userEmail);
-//            if (existingUserDTO == null) {
-//                log.warn("회원 정보 수정 실패: 인증되지 않은 사용자");
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다");
-//            }
-//
-//            userService.updateUser(existingUserDTO.getUserId(), updateUserDTO);
-//            log.info("회원 정보 수정 성공: email={}", userEmail);
-//            return ResponseEntity.ok("회원 정보 수정에 성공했습니다");
-//
-//        } catch (Exception e) {
-//            log.error("회원 정보 수정 중 오류 발생: email={}", updateUserDTO.getUserEmail(), e);
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 입니다");
-//        }
-//    }
 
     // 회원 탈퇴
     @Operation(summary = "회원 탈퇴 API", description = "회원 탈퇴")
