@@ -1,5 +1,6 @@
 package com.dropzone.friend.controller;
 
+
 import com.dropzone.friend.service.FriendService;
 import com.dropzone.user.dto.UserDTO;
 import com.dropzone.user.service.UserServiceImpl;
@@ -32,19 +33,13 @@ public class FriendController {
     @PostMapping("/friends/{email}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구추가 API", description = "친구의 email을 이용한 친구 추가")
-    public String sendFriendShipRequest(@Valid @PathVariable("email") String email) throws Exception {
+    public ResponseEntity<?> sendFriendShipRequest(@Valid @PathVariable("email") String email) throws Exception {
         try {
             // searchByNickname은 UserSearchDTO 객체를 반환하므로 이를 확인
             UserDTO userDTO = userService.searchByEmail(email);
             
             // 친구 추가 요청을 처리하는 로직
-            String result = friendService.createFriendship(email);
-
-            if (result == "이미 요청된 친구 요청이 있습니다.") {
-                return "친구추가 실패";
-            } else {
-                return "친구추가 성공";
-            }
+            return friendService.createFriendship(email);
 
         } catch (EntityNotFoundException e) {
             // 사용자가 존재하지 않을 경우 예외 처리
@@ -102,7 +97,7 @@ public class FriendController {
     @PostMapping("/friends/approve/{friendShipId}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 요청 수락 API", description = "친구에게서 온 친구 요청을 수락하는 API")
-    public String approveFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+    public ResponseEntity<?> approveFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.approveFriendShipRequest(friendShipId);
     }
 
@@ -110,7 +105,7 @@ public class FriendController {
     @PostMapping("/friends/refuse/{friendShipId}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 요청 거절 API", description = "친구에게서 온 친구 요청을 거절하는 API")
-    public String refuseFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+    public ResponseEntity<?> refuseFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.refuseFriendShipRequest(friendShipId);
     }
 }

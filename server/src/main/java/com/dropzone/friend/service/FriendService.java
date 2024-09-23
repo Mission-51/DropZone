@@ -1,5 +1,7 @@
 package com.dropzone.friend.service;
 
+import com.dropzone.friend.dto.FriendReponseDto;
+import com.dropzone.friend.dto.FriendListDto;
 import com.dropzone.friend.dto.WaitingFriendListDto;
 import com.dropzone.friend.entity.FriendShipEntity;
 import com.dropzone.friend.entity.FriendShipStatus;
@@ -29,7 +31,8 @@ public class FriendService {
     private final FriendShipRepository friendShipRepository;
 
     // 친구요청 생성 메서드
-    public String createFriendship(String toEmail) throws Exception {
+    public ResponseEntity<?> createFriendship(String toEmail) throws Exception {
+
         // 현재 로그인 되어 있는 사람 (보내는 사람)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -40,22 +43,29 @@ public class FriendService {
         UserEntity toUser = userRepository.findByUserEmail(toEmail).orElseThrow(() -> new Exception("회원 조회 실패"));
 
         // 이미 상대방에게 요청을 보냈거나 상대방으로부터 요청을 받은 것이 있는지 확인
+        // 내가 이미 상대방에 보낸 요청이 있으면 클라이언트에서 이미 보낸 요청이 있습니다.라는 문구를 띄우도록 설정
+        // 내가 받은 요청이 있는 상태에서 그 상대에게 친구요청을 보내려고 하면 받은 요청이 있습니다. 라는 문구를 띄우도록 설정
         List<FriendShipEntity> friendShipList = friendShipRepository.findAll();
-        List<FriendShipEntity> result = new ArrayList<>();
-
-
+        
         for (FriendShipEntity friendShip : friendShipList) {
-            if (friendShip.getUserEmail().equals(fromEmail) && friendShip.getFriendEmail().equals(toEmail)  && friendShip.getStatus() == FriendShipStatus.WAITTING) {
-                result.add(friendShip);
-            } else if (friendShip.getUserEmail().equals(toEmail) && friendShip.getFriendEmail().equals(fromEmail) && friendShip.getStatus() == FriendShipStatus.WAITTING) {
-                result.add(friendShip);
+            if (friendShip.getUserEmail().equals(fromEmail) && friendShip.getFriendEmail().equals(toEmail)) {
+                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                        .message("이미 받은 친구 요청이 있습니다!")
+                        .build();
+                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+            } else if (friendShip.getUserEmail().equals(toEmail) && friendShip.getFriendEmail().equals(fromEmail)) {
+                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                        .message("이미 보낸 친구 요청이 있습니다!")
+                        .build();
+                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+            } else if (friendShip.getUserEmail().equals(friendShip.getFriendEmail())) {
+                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                        .message("자기 자신한테는 친구 요청을 보낼 수 없습니다!")
+                        .build();
+
+                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
             }
         }
-
-        if (!result.isEmpty()) {
-            return "이미 요청된 친구 요청이 있습니다.";
-        }
-
 
         // 받는 사람측에 저장될 친구 요청
         FriendShipEntity friendShipFrom =  FriendShipEntity.builder()
@@ -97,7 +107,11 @@ public class FriendService {
         fromUser.getFriendshipList().add(friendShipTo);
         toUser.getFriendshipList().add(friendShipFrom);
 
-        return "친구 요청이 성공적으로 완료되었습니다.";
+        FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                .message("친구요청이 완료 되었습니다!")
+                .build();
+
+        return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
     }
     
     
@@ -154,7 +168,7 @@ public class FriendService {
 
 
     // 친구 요청 수락
-    public String approveFriendShipRequest(Long friendShipId) throws Exception {
+    public ResponseEntity<?> approveFriendShipRequest(Long friendShipId) throws Exception {
 
         // 누를 친구 요청과 매칭되는 상대방 친구 요청 둘다 가져옴
         FriendShipEntity friendShip = friendShipRepository.findById(friendShipId).orElseThrow(() -> new Exception("친구 요청 조회 실패"));
@@ -170,11 +184,15 @@ public class FriendService {
         friendShipRepository.save(counterFriendShip);
         System.out.println(counterFriendShip);
 
-        return "승인 성공";
+        FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                .message("친구 추가 되었습니다!")
+                .build();
+
+        return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
     }
 
     // 친구 요청 거절
-    public String refuseFriendShipRequest(Long friendShipId) throws Exception {
+    public ResponseEntity<?> refuseFriendShipRequest(Long friendShipId) throws Exception {
         // 누를 친구 요청과 매칭되는 상대방 친구 요청 둘다 가져옴
         FriendShipEntity friendShip = friendShipRepository.findById(friendShipId).orElseThrow(() -> new Exception("친구 요청 조회 실패"));
         FriendShipEntity counterFriendShip = friendShipRepository.findById(friendShip.getCounterpartId()).orElseThrow(() -> new Exception("친구 요청 조회 실패"));
@@ -183,6 +201,10 @@ public class FriendService {
         friendShipRepository.delete(friendShip);
         friendShipRepository.delete(counterFriendShip);
 
-        return "거절 성공";
+        FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                .message("거절이 완료되었습니다!")
+                .build();
+
+        return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
     }
 }

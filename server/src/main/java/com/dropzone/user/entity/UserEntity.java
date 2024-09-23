@@ -63,7 +63,7 @@ public class UserEntity extends BaseEntity {
     @Column(name = "user_is_online", nullable = false, columnDefinition = "boolean default false")
     private boolean userIsOnline;  // 회원의 접속 여부 (기본값: false)
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<FriendShipEntity> friendshipList = new ArrayList<>();
 
     // DTO -> Entity 변환 메소드
