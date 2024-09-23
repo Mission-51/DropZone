@@ -74,10 +74,6 @@ public class FriendService {
         // 매칭되는 친구요청의 아이디를 서로 저장한다.
         friendShipRepository.save(friendShipTo);
         friendShipRepository.save(friendShipFrom);
-
-
-
-
     }
     
     
