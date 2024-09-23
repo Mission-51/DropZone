@@ -25,7 +25,7 @@ public class UserDTO {
     private LocalDateTime userLastLogin;
     private String userStatus;
     private String userProfileImage;
-    private String userChosenCharacter;  // 선택된 캐릭터
+    private String userChosenCharacter = "boxer";  // 선택된 캐릭터, 기본 캐릭터 : boxer
     private boolean userIsOnline;
 
     public static UserDTO toUserDTO(UserEntity userEntity){
