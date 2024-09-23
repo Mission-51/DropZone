@@ -1,6 +1,5 @@
 package com.dropzone.user.entity;
 
-import com.dropzone.friend.entity.FriendEntity;
 import com.dropzone.friend.entity.FriendShipEntity;
 import com.dropzone.user.dto.UserDTO;
 import jakarta.persistence.*;
