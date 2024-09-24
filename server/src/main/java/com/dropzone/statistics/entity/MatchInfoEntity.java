@@ -2,12 +2,14 @@ package com.dropzone.statistics.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "match_info")
 public class MatchInfoEntity {

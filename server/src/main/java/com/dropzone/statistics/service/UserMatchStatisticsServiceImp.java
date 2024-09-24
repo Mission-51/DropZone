@@ -7,12 +7,16 @@ import com.dropzone.statistics.entity.MatchInfoEntity;
 import com.dropzone.statistics.entity.UserMatchStatisticsEntity;
 import com.dropzone.statistics.repository.MatchInfoRepository;
 import com.dropzone.statistics.repository.UserMatchStatisticsRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService {
 
@@ -85,6 +89,12 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
 
     @Override
     public void saveMatchRecords(List<MatchAllUserDTO> matchRecords) {
+
+    // 새로운 매치 생성 (match_id는 데이터베이스가 자동 생성)
+    MatchInfoEntity newMatchInfo = new MatchInfoEntity();
+    newMatchInfo.setMatchCreatedAt(LocalDateTime.now()); // 현재 시간으로 설정
+    matchInfoRepository.save(newMatchInfo); // matchInfo 저장 후 matchId 자동 생성
+
         for (MatchAllUserDTO matchRecord : matchRecords) {
             // 매치 기록을 각 유저별로 엔티티로 변환하여 저장
             for (UserMatchDTO userMatchDTO : matchRecord.getUserRecords()) {
@@ -96,10 +106,8 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 entity.setMatchKills(userMatchDTO.getMatch_kills());
                 entity.setMatchPlaytime(userMatchDTO.getMatch_playtime());
 
-                // MatchInfoEntity도 설정 (match_id를 통해 가져와서 설정)
-                MatchInfoEntity matchInfo = matchInfoRepository.findById(userMatchDTO.getMatch_id())
-                        .orElseThrow(() -> new RuntimeException("Match not found with ID: " + userMatchDTO.getMatch_id()));
-                entity.setMatch(matchInfo);
+                // 매치 정보 설정 (MatchInfoEntity 객체 사용)
+                entity.setMatch(newMatchInfo);
 
                 // 기록을 DB에 저장
                 repository.save(entity);

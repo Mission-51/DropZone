@@ -20,13 +20,13 @@ import java.util.List;
 @RequestMapping("/api/matches/statistics")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "매치 기록 API", description = "유저의 매치 기록 조회 및 매치에 참여한 모든 유저 기록 조회 API")
+@Tag(name = "매치 기록 API", description = "유저의 매치 기록 저장 및 매치 기록 조회 API")
 public class StatisticsController {
 
     private final UserMatchStatisticsService userMatchStatisticsService;
 
     // 1. 특정 유저의 특정 매치 기록 조회
-    @Operation(summary = "특정 유저의 특정 매치 기록 조회", description = "특정 유저가 특정 매치에서의 기록 조회")
+    @Operation(summary = "특정 유저의 특정 매치 기록 조회", description = "특정 유저가 참가한 특정 매치 기록 조회")
     @GetMapping("/user/{userId}/match/{matchId}")
     public ResponseEntity<?> getUserMatchStatistics(
             @Parameter(description = "유저 ID", required = true, example = "1") @PathVariable("userId") int userId,
@@ -77,7 +77,7 @@ public class StatisticsController {
     public ResponseEntity<?> saveMatchRecords(@RequestBody List<MatchAllUserDTO> matchRecords) {
         try {
             userMatchStatisticsService.saveMatchRecords(matchRecords);
-            return ResponseEntity.ok("Match records saved successfully");
+            return ResponseEntity.ok("매치 기록 저장 성공");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("매치 기록 저장 중 오류 발생: " + e.getMessage());
         }
