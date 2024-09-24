@@ -1,6 +1,6 @@
-package com.dropzone.statistics.repository;
+package com.dropzone.matchstatistics.repository;
 
-import com.dropzone.statistics.entity.MatchInfoEntity;
+import com.dropzone.matchstatistics.entity.MatchInfoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

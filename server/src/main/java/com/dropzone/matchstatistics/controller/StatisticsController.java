@@ -1,12 +1,14 @@
-package com.dropzone.statistics.controller;
+package com.dropzone.matchstatistics.controller;
 
 
-import com.dropzone.statistics.dto.MatchAllUserDTO;
-import com.dropzone.statistics.dto.UserAllMatchDTO;
-import com.dropzone.statistics.dto.UserMatchDTO;
-import com.dropzone.statistics.service.UserMatchStatisticsService;
+import com.dropzone.matchstatistics.dto.MatchAllUserDTO;
+import com.dropzone.matchstatistics.dto.UserAllMatchDTO;
+import com.dropzone.matchstatistics.dto.UserMatchDTO;
+import com.dropzone.matchstatistics.service.UserMatchStatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +76,23 @@ public class StatisticsController {
     // 4. 매치 기록을 DB에 저장
     @Operation(summary = "매치 기록 저장", description = "매치 기록을 DB에 저장")
     @PostMapping("/record")
-    public ResponseEntity<?> saveMatchRecords(@RequestBody List<MatchAllUserDTO> matchRecords) {
+    public ResponseEntity<?> saveMatchRecords(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "유저ID, 캐릭터ID, 등수, 매치에서 기록한 데미지, 매치에서 기록한 킬 수, 플레이 시간",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    example = "[{\"userRecords\": " +
+                                            "[" +
+                                            "{\"userId\": 1, \"character_id\": 1, \"match_rank\": 1, \"match_dps\": 250, \"match_kills\": 1, \"match_playtime\": \"00:07:31\"}, " +
+                                            "{\"userId\": 2, \"character_id\": 1, \"match_rank\": 2, \"match_dps\": 126, \"match_kills\": 1, \"match_playtime\": \"00:05:29\"}, " +
+                                            "{\"userId\": 3, \"character_id\": 2, \"match_rank\": 3, \"match_dps\": 56, \"match_kills\": 0, \"match_playtime\": \"00:03:21\"}" +
+                                            "]}]"
+                            )
+                    )
+            )
+            @RequestBody List<MatchAllUserDTO> matchRecords) {
         try {
             userMatchStatisticsService.saveMatchRecords(matchRecords);
             return ResponseEntity.ok("매치 기록 저장 성공");

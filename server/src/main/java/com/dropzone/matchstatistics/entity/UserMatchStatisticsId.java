@@ -1,4 +1,4 @@
-package com.dropzone.statistics.entity;
+package com.dropzone.matchstatistics.entity;
 
 import java.io.Serializable;
 import java.util.Objects;
