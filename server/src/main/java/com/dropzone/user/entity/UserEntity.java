@@ -1,5 +1,6 @@
 package com.dropzone.user.entity;
 
+import com.dropzone.friend.entity.FriendShipEntity;
 import com.dropzone.user.dto.UserDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -60,6 +63,9 @@ public class UserEntity extends BaseEntity {
     @Column(name = "user_is_online", nullable = false, columnDefinition = "boolean default false")
     private boolean userIsOnline;  // 회원의 접속 여부 (기본값: false)
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<FriendShipEntity> friendshipList = new ArrayList<>();
+
     // DTO -> Entity 변환 메소드
     public static UserEntity toSaveEntity(UserDTO userDTO) {
         UserEntity userEntity = new UserEntity();
@@ -67,8 +73,8 @@ public class UserEntity extends BaseEntity {
         userEntity.setUserEmail(userDTO.getUserEmail());  // 이메일 설정
         userEntity.setUserNickname(userDTO.getUserNickname());  // 닉네임 설정
         userEntity.setUserProfileImage(userDTO.getUserProfileImage());  // 프로필 이미지 설정 (선택적)
-        // 나머지 필드들은 DB 기본값에 의해 자동으로 설정되므로 따로 설정하지 않음
 
+        // 나머지 필드들은 DB 기본값에 의해 자동으로 설정되므로 따로 설정하지 않음
         return userEntity;
     }
 }
