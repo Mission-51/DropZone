@@ -1,10 +1,8 @@
 spring:
   datasource:
-#    url: jdbc:mysql://mysql-container:3306/dropzonedb?serverTimezone=Asia/Seoul
-    url: jdbc:mysql://localhost:3306/dropzonedb?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://mysql-container:3306/dropzonedb?serverTimezone=Asia/Seoul
     username: root
-#    password: dropzoned110
-    password: 8032
+    password: dropzoned110
     driver-class-name: com.mysql.cj.jdbc.Driver
   mail:
     host: smtp.gmail.com
@@ -18,7 +16,6 @@ spring:
           timeout: 5000
           starttls:
             enable: true
-
   jpa:
     hibernate:
       ddl-auto: update  # 서버 환경에 맞게 테이블 검증
@@ -31,9 +28,9 @@ spring:
             non_contextual_creation: true
     show-sql: true  # SQL 쿼리 로깅
 
-#  redis:
-#    host: redis-container
-#    port: 6379
+  #  redis:
+  #    host: redis-container
+  #    port: 6379
 
   thymeleaf:
     cache: false  # Thymeleaf 캐시 비활성화
