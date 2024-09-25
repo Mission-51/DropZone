@@ -52,6 +52,14 @@ dependencies {
 
     // Spring Boot 설정 프로세서
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    
+    // 스프링 웹소켓
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.webjars:stomp-websocket'
+    implementation 'org.springframework:spring-messaging'
+    implementation 'org.springframework.security:spring-security-messaging'
+    implementation 'org.webjars:sockjs-client'
+
 
     // 테스트 관련 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
