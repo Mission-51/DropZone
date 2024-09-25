@@ -39,25 +39,29 @@ public class ChatPreHandler implements ChannelInterceptor {
         try {
             // 연결 요청일 경우
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            String token = accessor.getFirstNativeHeader("Authorization");
+                String token = accessor.getFirstNativeHeader("Authorization");
 
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7); // Bearer 접두어 제거
-            }
+                if (token == null) {
+                    token = accessor.getFirstNativeHeader("token");
+                }
 
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                String email = JwtTokenProvider.getEmailFromToken(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                if (token != null && token.startsWith("Bearer ")) {
+                    token = token.substring(7); // Bearer 접두어 제거
+                }
 
-                // SecurityContext에 인증 정보 설정
-                UsernamePasswordAuthenticationToken authenication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authenication);
+                if (token != null && jwtTokenProvider.validateToken(token)) {
+                    String email = JwtTokenProvider.getEmailFromToken(token);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-            } else {
-                // 로그 및 예외 처리
-                System.out.println("Invalid JWT token");
-                return handleUnauthorizedException(message, new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-            }
+                    // SecurityContext에 인증 정보 설정
+                    UsernamePasswordAuthenticationToken authenication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authenication);
+
+                } else {
+                    // 로그 및 예외 처리
+                    System.out.println("Invalid JWT token");
+                    return handleUnauthorizedException(message, new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+                }
             }
 
         }

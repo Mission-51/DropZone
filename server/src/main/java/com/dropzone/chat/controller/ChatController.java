@@ -11,7 +11,6 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class ChatController {
 
-    private final ChatRoomManager chatRoomManager;
     private final SimpMessageSendingOperations messagingTemplate;
 
     // 채팅방 입장 처리

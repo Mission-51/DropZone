@@ -40,4 +40,10 @@ jasypt:
     bean: jasyptStringEncryptor
     key: Dr@pZoneKey2024!@#$
 
-
+logging:
+  level:
+    org:
+      springframework:
+        messaging: DEBUG
+        web:
+          socket: DEBUG

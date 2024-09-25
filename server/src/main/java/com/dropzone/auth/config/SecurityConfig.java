@@ -61,7 +61,7 @@ public class SecurityConfig {
                             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));  // 허용할 HTTP 메서드
                             config.setAllowedHeaders(List.of("*"));  // 모든 헤더 허용
                             return config;
-                        })
+                        }))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 세션을 사용하지 않도록 설정 (JWT로 인증을 처리하므로 STATELESS 모드 사용)
@@ -69,7 +69,8 @@ public class SecurityConfig {
                                 authorizeHttpRequests
                                         .requestMatchers("/ws/**").authenticated()
                                         .anyRequest().permitAll());
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가
         return http.build();
     }

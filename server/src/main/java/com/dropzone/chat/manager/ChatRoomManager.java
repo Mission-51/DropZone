@@ -1,6 +1,7 @@
 package com.dropzone.chat.manager;
 
 import com.dropzone.chat.domain.ChatRoom;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -12,15 +13,16 @@ import java.util.Map;
 public class ChatRoomManager {
     private final Map<String, ChatRoom> chatRooms = new HashMap<>();
 
-    public ChatRoomManager() {
-        // 서버 시작 시 하나의 채팅방을 미리 생성
+    // 서버 시작 시 기본 채팅방을 생성
+    @PostConstruct
+    public void init() {
         createRoom("default-room");
     }
 
-    public ChatRoom createRoom(String roomId) {
+
+    public void createRoom(String roomId) {
         ChatRoom chatRoom = new ChatRoom(roomId);
         chatRooms.put(roomId, chatRoom);
-        return chatRoom;
     }
 
     public ChatRoom getRoom(String roomId) {
