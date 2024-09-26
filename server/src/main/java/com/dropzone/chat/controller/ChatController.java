@@ -1,5 +1,6 @@
 package com.dropzone.chat.controller;
 
+import com.dropzone.chat.dto.ChatMessageDto;
 import com.dropzone.chat.entity.ChatMessage;
 import com.dropzone.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +10,14 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -27,29 +31,19 @@ public class ChatController {
 
     private final SimpMessageSendingOperations messagingTemplate;
 
-    // 채팅방 입장 처리
-    @MessageMapping("/chat/enter")
-    public void enterRoom() {
-        // 로비에 접속한 모든 유저를 기본 채팅방으로 입장시킴
-        String message = "유저가 로비에 입장했습니다.";
-        messagingTemplate.convertAndSend("/sub/room/default-room", message);
+    // 로비에 채팅 메시지 전송 처리 - 로비 채팅방에 입장할 때에는 메시지에 oo유저가 입장하였습니다. 라고 메시지를 담아서 보내면 됨.
+    @MessageMapping("/chat/lobby-message")
+    public void sendDefaultMessage(ChatMessageDto chatMessageDto) {
+        String defaultRoom = "/sub/room/default-room";
+        messagingTemplate.convertAndSend(defaultRoom, chatMessageDto);
     }
-
-    // 로비에 채팅 메시지 전송 처리
-    @MessageMapping("/chat/message")
-    @SendTo("/sub/room/default-room")
-    public String sendDefaultMessage(String message) {
-        return message;
-    }
-
 
     // 개인 채팅 메시지 전송 처리
-    @MessageMapping()
-    @SendTo()
-    public void errr() {
-
+    @MessageMapping("/chat/private-message")
+    public void sendPrivateMessage(ChatMessageDto chatMessageDto) {
+        String roomId = chatMessageDto.getRoomId();
+        messagingTemplate.convertAndSend("/sub/room/" + roomId, chatMessageDto);
     }
-
 
     // 채팅 메시지 저장
     @PostMapping("/api/chat/{roomId}/message")
