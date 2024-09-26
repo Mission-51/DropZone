@@ -57,9 +57,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     // CORS 설정
                             CorsConfiguration config = new CorsConfiguration();
-                            config.setAllowedOrigins(List.of("*"));  // 모든 출처를 허용
+                            config.setAllowedOrigins(List.of("http://localhost:5173")); // 특정 출처 허용
                             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));  // 허용할 HTTP 메서드
                             config.setAllowedHeaders(List.of("*"));  // 모든 헤더 허용
+                            config.setAllowCredentials(true);
                             return config;
                         }))
                 .sessionManagement(sessionManagement ->
@@ -67,8 +68,16 @@ public class SecurityConfig {
                 // 세션을 사용하지 않도록 설정 (JWT로 인증을 처리하므로 STATELESS 모드 사용)
                 .authorizeHttpRequests(authorizeHttpRequests ->
                                 authorizeHttpRequests
-                                        .requestMatchers("/ws/**").authenticated()
-                                        .anyRequest().permitAll());
+                                        .requestMatchers("/ws/**").permitAll()
+                                        .requestMatchers(
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**",
+                                                "/swagger-resources/**",
+                                                "/webjars/**",
+                                                "/swagger-ui.html"
+                                        ).permitAll()
+                                        .requestMatchers("GET", "/**").permitAll()
+                                        .anyRequest().authenticated());
         http
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가

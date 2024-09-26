@@ -41,9 +41,9 @@ public class ChatPreHandler implements ChannelInterceptor {
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                 String token = accessor.getFirstNativeHeader("Authorization");
 
-                if (token == null) {
-                    token = accessor.getFirstNativeHeader("token");
-                }
+//                if (token == null) {
+//                    token = accessor.getFirstNativeHeader("token");
+//                }
 
                 if (token != null && token.startsWith("Bearer ")) {
                     token = token.substring(7); // Bearer 접두어 제거

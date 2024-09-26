@@ -42,6 +42,9 @@ dependencies {
     // MySQL (MySQL을 사용한다면)
     implementation 'mysql:mysql-connector-java:8.0.20'
 
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // JWT (JSON Web Token)
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
