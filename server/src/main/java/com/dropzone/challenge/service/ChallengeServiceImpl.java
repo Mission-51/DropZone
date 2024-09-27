@@ -68,7 +68,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         switch (challengeField) {
             case "total_kills":
                 return statistics.getTotalKills();
-            case "total_dps":
+            case "total_damage":
                 return statistics.getTotalDamage();
             case "total_wins":
                 return statistics.getTotalWins();
