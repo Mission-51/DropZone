@@ -59,7 +59,22 @@ public class SecurityConfig {
                                 // 모든 요청에 대해 접근을 허용
                                 .anyRequest().authenticated()
                         // 그 외의 요청은 인증을 요구
-                );
+                )
+                .cors(cors -> cors.configurationSource(request -> {
+    var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
+    
+    // 허용할 도메인 목록 (Swagger UI와 Unity 클라이언트)
+    corsConfiguration.setAllowedOrigins(List.of(
+        "http://localhost:3000",   // Swagger UI (예: React와 연동된 경우)
+        "http://localhost"
+    ));
+    
+    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    corsConfiguration.setAllowedHeaders(List.of("*"));  // 모든 헤더 허용
+    corsConfiguration.setAllowCredentials(true);  // 인증 정보 허용 (필요시)
+    
+    return corsConfiguration;
+}));
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가
