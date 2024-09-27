@@ -20,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class UserEntity extends BaseEntity {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +35,9 @@ public class UserEntity extends BaseEntity {
 
     @Column(name = "user_nickname", nullable = false, length = 50)
     private String userNickname;  // 회원의 닉네임 정보
+
+    @Column(updatable = false, name = "user_created_at", nullable = false)
+    private LocalDateTime userCreatedAt;
 
     @Column(name = "user_deleted_at")
     private LocalDateTime userDeletedAt;  // 회원의 탈퇴일 정보 (기본값: NULL)
@@ -72,7 +75,8 @@ public class UserEntity extends BaseEntity {
         userEntity.setUserPassword(userDTO.getUserPassword());  // 비밀번호 설정
         userEntity.setUserEmail(userDTO.getUserEmail());  // 이메일 설정
         userEntity.setUserNickname(userDTO.getUserNickname());  // 닉네임 설정
-        userEntity.setUserProfileImage(userDTO.getUserProfileImage());  // 프로필 이미지 설정 (선택적)
+        userEntity.setUserProfileImage(userDTO.getUserProfileImage());
+        userEntity.setUserCreatedAt(LocalDateTime.now());
 
         // 나머지 필드들은 DB 기본값에 의해 자동으로 설정되므로 따로 설정하지 않음
         return userEntity;
