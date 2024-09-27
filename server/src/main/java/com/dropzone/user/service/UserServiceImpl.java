@@ -1,5 +1,7 @@
 package com.dropzone.user.service;
 
+import com.dropzone.matchstatistics.entity.UserStatisticsEntity;
+import com.dropzone.matchstatistics.repository.UserStatisticsRepository;
 import com.dropzone.user.dto.UserDTO;
 import com.dropzone.user.dto.UserSearchDTO;
 import com.dropzone.user.entity.UserEntity;
@@ -9,15 +11,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
+import java.sql.Time;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +27,8 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     private final Set<String> authenticatedUsers = ConcurrentHashMap.newKeySet();
+    @Autowired
+    private UserStatisticsRepository userStatisticsRepository;
 
     @Override
     public boolean checkDuplicatedEmail(String userEmail) {
@@ -44,12 +46,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void signUp(UserDTO userDTO) {
+        // 이메일 인증 확인 로직
         if (!authenticatedUsers.contains(userDTO.getUserEmail())) {
             throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
         }
+
+        // UserEntity로 변환 후 회원 정보 저장
         UserEntity userEntity = UserEntity.toSaveEntity(userDTO);
-        userRepository.save(userEntity);
+        userRepository.save(userEntity); // 회원 정보 저장
+
+        // 인증된 이메일 제거
         authenticatedUsers.remove(userDTO.getUserEmail());
+
+        // 회원가입 후 유저 통계 테이블에 기본 통계 정보 추가
+        UserStatisticsEntity userStatisticsEntity = new UserStatisticsEntity();
+        userStatisticsEntity.setUserId(userEntity.getUserId());
+        userStatisticsEntity.setRankingPoints(100); // 초기값 100
+        userStatisticsEntity.setTotalKills(0);
+        userStatisticsEntity.setTotalDamage(0);
+        userStatisticsEntity.setTotalPlaytime(Time.valueOf("00:00:00")); // 초기 플레이 시간 0
+        userStatisticsEntity.setTotalGames(0);
+        userStatisticsEntity.setTotalWins(0);
+
+        // UserStatistics 테이블에 저장
+        userStatisticsRepository.save(userStatisticsEntity);
     }
 
     @Override
