@@ -1,11 +1,13 @@
-package com.dropzone.statistics.repository;
+package com.dropzone.matchstatistics.repository;
 
-import com.dropzone.statistics.entity.UserMatchStatisticsEntity;
+import com.dropzone.matchstatistics.entity.UserMatchStatisticsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface UserMatchStatisticsRepository extends JpaRepository<UserMatchStatisticsEntity, Integer> {
     // 특정 회원의 특정 매치 기록을 조회하는 메서드
     Optional<UserMatchStatisticsEntity> findByUserIdAndMatch_MatchId(int userId, int matchId);

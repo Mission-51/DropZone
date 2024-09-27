@@ -133,7 +133,6 @@ public class UserController {
                             mediaType = "application/json",
                             schema = @Schema(
                                     example = "{\"userEmail\": \"yg9618@naver.com\", \"userPassword\": \"qwer1234!\", \"userNickname\": \"BTS\"}"
-
                             )
                     )
             )

@@ -1,4 +1,4 @@
-package com.dropzone.statistics.dto;
+package com.dropzone.matchstatistics.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

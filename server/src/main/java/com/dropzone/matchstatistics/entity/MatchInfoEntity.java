@@ -1,4 +1,4 @@
-package com.dropzone.statistics.entity;
+package com.dropzone.matchstatistics.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
