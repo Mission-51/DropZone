@@ -59,7 +59,16 @@ public class SecurityConfig {
                                 // 모든 요청에 대해 접근을 허용
                                 .anyRequest().authenticated()
                         // 그 외의 요청은 인증을 요구
-                );
+                )
+                .cors(cors -> cors.configurationSource(request -> {
+                var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
+                corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000",
+                "http://localhost",));  // 허용할 도메인 (프론트엔드 URL)
+                corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                corsConfiguration.setAllowedHeaders(List.of("*"));
+                corsConfiguration.setAllowCredentials(true);  // 인증 정보를 포함할지 여부
+                return corsConfiguration;
+            }));
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가
