@@ -28,10 +28,6 @@ spring:
             non_contextual_creation: true
     show-sql: true  # SQL 쿼리 로깅
 
-#  redis:
-#    host: redis-container
-#    port: 6379
-
   thymeleaf:
     cache: false  # Thymeleaf 캐시 비활성화
 
