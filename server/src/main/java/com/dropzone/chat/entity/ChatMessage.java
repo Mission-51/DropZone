@@ -1,18 +1,25 @@
 package com.dropzone.chat.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
-@RequiredArgsConstructor
-public class ChatMessage implements Serializable {
+@Setter
+@Document(collection = "chatMessage")
+public class ChatMessage {
 
-    private final String chatRoomId;
-    private final String sender;
-    private final String message;
-    private final LocalDateTime timeStamp;
+    private String chatRoomId;
+    private String sender;
+    private String message;
+    private LocalDateTime timeStamp;
 
 }

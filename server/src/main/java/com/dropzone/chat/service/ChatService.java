@@ -2,14 +2,13 @@ package com.dropzone.chat.service;
 
 
 import com.dropzone.chat.entity.ChatMessage;
+import com.dropzone.chat.repository.ChatRepository;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneOffset;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,21 +16,17 @@ import java.util.Set;
 public class ChatService {
 
     @Autowired
-    private RedisTemplate<String, ChatMessage> redisTemplate;
+    private ChatRepository chatRepository;
 
-    // 채팅 메시지를 시간순으로 저장
-    public void saveMessage(ChatMessage chatMessage) {
-        // 타임스탬프를 score로 설정
-        double score = chatMessage.getTimeStamp().toEpochSecond(ZoneOffset.ofHours(9));
 
-        // Sorted Set에 메시지 저장
-        redisTemplate.opsForZSet().add(chatMessage.getChatRoomId(), chatMessage, score);
-
+    // 채팅 메시지 저장
+    public ChatMessage saveMessage(ChatMessage chatMessage) {
+        return chatRepository.save(chatMessage);
     }
 
-    // 특정 채팅방의 채팅 기록 조회 (시간 순서대로)
-    public Set<ChatMessage> getChatMessage(String chatRoomId) {
-        return (Set<ChatMessage>) redisTemplate.opsForZSet().range(chatRoomId, 0, -1);
+    // 개인 채팅방 이전 기록 조회
+    public List<ChatMessage> getChatMessage(String roomId) {
+            return chatRepository.findAllByChatRoomId(roomId);
     }
 
 }
