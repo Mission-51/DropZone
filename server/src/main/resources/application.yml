@@ -30,16 +30,22 @@ spring:
             non_contextual_creation: true
     show-sql: true  # SQL 쿼리 로깅
 
-  #  redis:
-  #    host: redis-container
-  #    port: 6379
-
   thymeleaf:
     cache: false  # Thymeleaf 캐시 비활성화
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/DropzoneDB
+      auto-index-creation: true
 
 jasypt:
   encryptor:
     bean: jasyptStringEncryptor
     key: Dr@pZoneKey2024!@#$
 
-
+logging:
+  level:
+    org:
+      springframework:
+        messaging: DEBUG
+        web:
+          socket: DEBUG
