@@ -1,15 +1,8 @@
 package com.dropzone.chat.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter

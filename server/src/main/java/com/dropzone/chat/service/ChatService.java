@@ -18,7 +18,6 @@ public class ChatService {
     @Autowired
     private ChatRepository chatRepository;
 
-
     // 채팅 메시지 저장
     public ChatMessage saveMessage(ChatMessage chatMessage) {
         return chatRepository.save(chatMessage);
