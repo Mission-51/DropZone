@@ -4,7 +4,7 @@ spring:
     url: jdbc:mysql://localhost:3306/dropzonedb?serverTimezone=Asia/Seoul
     username: root
 #    password: dropzoned110
-    password: 8032
+    password: ssafy
     driver-class-name: com.mysql.cj.jdbc.Driver
   mail:
     host: smtp.gmail.com
