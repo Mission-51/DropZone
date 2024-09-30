@@ -3,16 +3,16 @@ package com.dropzone.declaration.service;
 import com.dropzone.declaration.dto.DeclarationChatDto;
 import com.dropzone.declaration.entity.DeclarationChat;
 import com.dropzone.declaration.repository.MongoDeclarationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class DeclarationService {
 
-    @Autowired
-    private MongoDeclarationRepository mongoDeclarationRepository;
+    private final MongoDeclarationRepository mongoDeclarationRepository;
 
     // 신고된 채팅 저장하는 로직
     public DeclarationChat saveDeclarationChat(DeclarationChatDto declarationChatDto) {
@@ -29,6 +29,4 @@ public class DeclarationService {
     public List<DeclarationChat> getUserDeclarationChat(Long userId) {
         return mongoDeclarationRepository.findAllByUserId(userId);
     }
-
-
 }
