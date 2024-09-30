@@ -65,10 +65,7 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 ))
                 .collect(Collectors.toList());
 
-        if (matches.isEmpty()) {
-            throw new RuntimeException("No matches found for userId: " + userId);
-        }
-
+        // 매치 기록이 없으면 빈 리스트를 반환
         return new UserAllMatchDTO(userId, matches);
     }
 
