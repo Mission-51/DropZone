@@ -20,8 +20,7 @@ public class ChatConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // stomp 접속 주소
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:5173")
-                .withSockJS();
+                .setAllowedOrigins("*");
     }
 
     @Override
