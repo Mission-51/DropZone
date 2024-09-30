@@ -70,7 +70,7 @@ public class FriendController {
         return friendService.getWaitingFriendList(email);
     }
 
-    @GetMapping("friends/list")
+    @GetMapping("/friends/list")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 목록 API", description = "친구 목록을 가져오는 API")
     public ResponseEntity<?> getFriendList() throws Exception {
