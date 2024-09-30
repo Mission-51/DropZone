@@ -63,8 +63,8 @@ public class ChallengeController {
 
     // 특정 유저의 모든 도전 과제 달성 여부를 확인하는 API
     @Operation(summary = "특정 유저의 모든 도전 과제 달성 여부 확인", description = "특정 유저의 도전 과제 리스트와 달성 여부를 반환")
-    @GetMapping("/check-all")
-    public ResponseEntity<?> checkAllChallengesForUser(@RequestParam int userId) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> checkAllChallengesForUser(@PathVariable int userId) {
         List<ChallengeCompletionDTO> result = challengeService.checkAllChallengesForUser(userId);
         return ResponseEntity.ok(result);
     }

@@ -30,8 +30,20 @@ spring:
 
   thymeleaf:
     cache: false  # Thymeleaf 캐시 비활성화
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/DropzoneDB
+      auto-index-creation: true
 
 jasypt:
   encryptor:
     bean: jasyptStringEncryptor
     key: Dr@pZoneKey2024!@#$
+
+logging:
+  level:
+    org:
+      springframework:
+        messaging: DEBUG
+        web:
+          socket: DEBUG
