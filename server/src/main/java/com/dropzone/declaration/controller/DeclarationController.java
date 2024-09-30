@@ -4,6 +4,7 @@ import com.dropzone.declaration.dto.DeclarationChatDto;
 import com.dropzone.declaration.entity.DeclarationChat;
 import com.dropzone.declaration.service.DeclarationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 
 @Controller
+@Tag(name = "채팅 신고 API", description = " 특정 유저 신고 / 특정 유저 신고 채팅 조회 / 모든 유저의 신고 채팅 조회 ")
 public class DeclarationController {
 
     @Autowired
