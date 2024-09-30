@@ -1,12 +1,13 @@
 package com.dropzone.chat.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Document(collection = "chatMessage")
 public class ChatMessage {
 

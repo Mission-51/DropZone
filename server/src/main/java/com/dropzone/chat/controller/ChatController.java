@@ -7,25 +7,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import java.time.LocalDateTime;
 import java.util.List;
 
-@RestController
+
 @RequiredArgsConstructor
 @Tag(name = "채팅 API", description = "채팅 메시지 저장 / 특정 채팅방 이전 기록 조회")
+@RestController
 public class ChatController {
 
-    @Autowired
-    private ChatService chatService;
-
+    private final ChatService chatService;
     private final SimpMessageSendingOperations messagingTemplate;
-
 
     // 메시지 전송 처리 - 로비 채팅방에 입장할 때에는 메시지에 oo유저가 입장하였습니다. 라고 메시지를 담아서 보내면 됨.
     @MessageMapping("/chat/message")
@@ -45,13 +39,7 @@ public class ChatController {
             @Parameter(description = "message", required = true)
             @RequestParam("message") String message
               ) {
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setChatRoomId(roomId);
-        chatMessage.setSender(sender);
-        chatMessage.setMessage(message);
-        chatMessage.setTimeStamp(LocalDateTime.now());
-
-        return chatService.saveMessage(chatMessage);
+        return chatService.saveMessage(roomId, sender, message);
     }
 
     // 개인 채팅방의 채팅 기록 조회
