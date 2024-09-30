@@ -2,7 +2,7 @@ package com.dropzone.friend.controller;
 
 
 import com.dropzone.friend.service.FriendService;
-import com.dropzone.user.dto.UserDTO;
+import com.dropzone.user.dto.UserSearchDTO;
 import com.dropzone.user.service.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,15 +30,18 @@ public class FriendController {
     private final FriendService friendService;
 
 
-    @PostMapping("/friends/{email}")
+    @PostMapping("/friends/{nickname}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구추가 API", description = "친구의 email을 이용한 친구 추가")
-    public ResponseEntity<?> sendFriendShipRequest(@Valid @PathVariable("email") String email) throws Exception {
+    public ResponseEntity<?> sendFriendShipRequest(@Valid @PathVariable("nickname") String nickName) throws Exception {
         try {
             // searchByNickname은 UserSearchDTO 객체를 반환하므로 이를 확인
-            UserDTO userDTO = userService.searchByEmail(email);
-            
-            // 친구 추가 요청을 처리하는 로직
+            UserSearchDTO userSearchDTO = userService.searchByNickname(nickName);
+
+            // userSearchDTO에서 이메일 정보를 가져오기
+            String email = userSearchDTO.getUserEmail();
+
+            // 이메일 정보를 통해서 친구 추가 요청을 처리하는 로직
             return friendService.createFriendship(email);
 
         } catch (EntityNotFoundException e) {
@@ -57,7 +60,7 @@ public class FriendController {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인되지 않은 사용자입니다.");
         }
-        
+
         // 사용자 정보에서 이메일 추출
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
@@ -70,7 +73,7 @@ public class FriendController {
         return friendService.getWaitingFriendList(email);
     }
 
-    @GetMapping("friends/list")
+    @GetMapping("/friends/list")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 목록 API", description = "친구 목록을 가져오는 API")
     public ResponseEntity<?> getFriendList() throws Exception {
@@ -80,7 +83,7 @@ public class FriendController {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 되지 않은 사람입니다.");
         }
-        
+
         // 사용자 정보에서 이메일 추출
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
