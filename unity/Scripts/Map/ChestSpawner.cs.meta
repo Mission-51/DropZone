@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 21e42deb366a4234b96a94206c5ab6c5
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - chest_M100: {fileID: 11400000, guid: d5971c0bc95e2da428b55b9732082c82, type: 2}
+  - chest_M200: {fileID: 11400000, guid: 57d9aa98eba13484e9461df185083741, type: 2}
+  - chest_M300: {fileID: 11400000, guid: a434a38a9c9ef30439d16e49944e69d2, type: 2}
+  - chest_TaserGun: {fileID: 11400000, guid: b68de623c67bce0499dc3fc49440f2dc, type: 2}
+  - chest_Grenade: {fileID: 11400000, guid: e5c798719307e604aa56b208a2a782d5, type: 2}
+  - chest_Trap: {fileID: 11400000, guid: 287397b0b4e67fd4287400cbee2e40b6, type: 2}
+  - chest_Glue: {fileID: 11400000, guid: 73f2c68166462764a8f2f8fd45bcaebe, type: 2}
+  - chest_Bandage: {fileID: 11400000, guid: d86bf0248143d61468a3094b4ebe51eb, type: 2}
+  - chest_FirstAidKit: {fileID: 11400000, guid: f7d7bc2404f774a408e5964785bf35f0, type: 2}
+  - chest: {fileID: 153492, guid: 28c90598a2b8765468371486ca76a11e, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
