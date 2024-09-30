@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @Tag(name = "채팅 API", description = "채팅 메시지 저장 / 특정 채팅방 이전 기록 조회")
 public class ChatController {
@@ -37,7 +37,7 @@ public class ChatController {
     // 채팅 메시지 저장
     @Operation(summary = "채팅 메시지 저장 API", description = "채팅 메시지 저장")
     @PostMapping("/api/chat/message")
-    public ResponseEntity<ChatMessage> saveMessage(
+    public ChatMessage saveMessage(
             @Parameter(description = "roomId", required = true)
             @RequestParam("roomId") String roomId,
             @Parameter(description = "sender", required = true)
@@ -51,15 +51,16 @@ public class ChatController {
         chatMessage.setMessage(message);
         chatMessage.setTimeStamp(LocalDateTime.now());
 
-        return ResponseEntity.ok(chatService.saveMessage(chatMessage));
+        return chatService.saveMessage(chatMessage);
     }
 
     // 개인 채팅방의 채팅 기록 조회
     @Operation(summary = "개인 채팅방 이전 메시지 조회 API", description = "개인 채팅방에 저장된 이전 채팅 메시지들을 조회")
     @GetMapping("/api/chat/messages")
-    public ResponseEntity<List<ChatMessage>> getMessages(
+    public List<ChatMessage> getMessages(
             @Parameter(description = "roomId", required = true)
             @RequestParam("roomId") String roomId) {
-        return ResponseEntity.ok(chatService.getChatMessage(roomId));
+
+        return chatService.getChatMessage(roomId);
     }
 }
