@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.sql.Time;
 import java.util.List;
@@ -29,6 +30,8 @@ public class UserServiceImpl implements UserService {
     private final Set<String> authenticatedUsers = ConcurrentHashMap.newKeySet();
     @Autowired
     private UserStatisticsRepository userStatisticsRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public boolean checkDuplicatedEmail(String userEmail) {
@@ -50,6 +53,10 @@ public class UserServiceImpl implements UserService {
         if (!authenticatedUsers.contains(userDTO.getUserEmail())) {
             throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
         }
+
+        // 비밀번호 암호화 처리
+        String encodedPassword = passwordEncoder.encode(userDTO.getUserPassword());
+        userDTO.setUserPassword(encodedPassword);
 
         // UserEntity로 변환 후 회원 정보 저장
         UserEntity userEntity = UserEntity.toSaveEntity(userDTO);

@@ -2,6 +2,7 @@ package com.dropzone.auth.jwt;
 
 import com.dropzone.auth.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter { // 이 클�
     private JwtTokenProvider jwtTokenProvider; // JWT 토큰 생성 및 검증 로직을 처리하는 클래스
 
     @Autowired
+    @Lazy
     private CustomUserDetailsService customUserDetailsService; // 사용자 정보를 데이터베이스에서 조회하는 서비스
 
     @Override
