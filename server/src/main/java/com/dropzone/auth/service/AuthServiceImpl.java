@@ -3,7 +3,9 @@ package com.dropzone.auth.service;
 import com.dropzone.user.dto.UserDTO;
 import com.dropzone.user.entity.UserEntity;
 import com.dropzone.user.repository.UserRepository;
+import com.dropzone.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,6 +21,7 @@ public class AuthServiceImpl implements AuthService {
     // 이메일과 비밀번호로 로그인하는 메서드
     @Override
     public UserDTO loginByEmail(String email, String password) {
+
         // 이메일과 비밀번호로 사용자 찾기
         Optional<UserEntity> loginUserEntity = userRepository.findByUserEmailAndUserPassword(email, password);
 
