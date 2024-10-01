@@ -17,6 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration  // 이 클래스가 설정 클래스임을 나타냄
 @EnableWebSecurity  // Spring Security를 활성화
@@ -51,17 +54,24 @@ public class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)  // CSRF 보안을 비활성화 (JWT 사용 시 일반적으로 CSRF는 필요 없음)
+                .cors(cors -> cors.configurationSource(request -> {
+                    // CORS 설정
+                            CorsConfiguration config = new CorsConfiguration();
+                            config.setAllowedOrigins(List.of("*")); // 특정 출처 허용
+                            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));  // 허용할 HTTP 메서드
+                            config.setAllowedHeaders(List.of("*"));  // 모든 헤더 허용
+                            config.setAllowCredentials(true);
+                            return config;
+                        }))
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 세션을 사용하지 않도록 설정 (JWT로 인증을 처리하므로 STATELESS 모드 사용)
-                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                                .requestMatchers("/**").permitAll()
-                                // 모든 요청에 대해 접근을 허용
-                                .anyRequest().authenticated()
-                        // 그 외의 요청은 인증을 요구
-                );
-
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authorizeHttpRequests(authorizeHttpRequests ->
+                                authorizeHttpRequests
+                                        .requestMatchers("/**").permitAll()
+                                        .anyRequest().authenticated());
+        http
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 추가
         return http.build();
     }

@@ -41,4 +41,6 @@ jasypt:
     bean: jasyptStringEncryptor
     key: Dr@pZoneKey2024!@#$
 
-
+  redis:
+    host: redis-container
+    port: 6379
