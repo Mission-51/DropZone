@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -24,14 +25,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
 
+    private final UserRepository userRepository;
     private final Set<String> authenticatedUsers = ConcurrentHashMap.newKeySet();
-    @Autowired
-    private UserStatisticsRepository userStatisticsRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserStatisticsRepository userStatisticsRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public boolean checkDuplicatedEmail(String userEmail) {
@@ -61,9 +59,6 @@ public class UserServiceImpl implements UserService {
         // UserEntity로 변환 후 회원 정보 저장
         UserEntity userEntity = UserEntity.toSaveEntity(userDTO);
         userRepository.save(userEntity); // 회원 정보 저장
-
-        // 인증된 이메일 제거
-        authenticatedUsers.remove(userDTO.getUserEmail());
 
         // 회원가입 후 유저 통계 테이블에 기본 통계 정보 추가
         UserStatisticsEntity userStatisticsEntity = new UserStatisticsEntity();

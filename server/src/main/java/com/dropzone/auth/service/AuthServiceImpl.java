@@ -17,18 +17,27 @@ import static com.dropzone.user.dto.UserDTO.toUserDTO;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 이메일과 비밀번호로 로그인하는 메서드
     @Override
     public UserDTO loginByEmail(String email, String password) {
 
-        // 이메일과 비밀번호로 사용자 찾기
-        Optional<UserEntity> loginUserEntity = userRepository.findByUserEmailAndUserPassword(email, password);
+        // 이메일로 사용자 찾기
+        Optional<UserEntity> loginUserEntity = userRepository.findByUserEmail(email);
 
-        // 사용자가 존재할 경우, DTO로 변환하여 반환
+        // 사용자가 존재할 경우, 비밀번호 비교
         if (loginUserEntity.isPresent()) {
             UserEntity userEntity = loginUserEntity.get();
-            return toUserDTO(userEntity); // UserEntity를 UserDTO로 변환하여 반환
+
+            // 입력된 비밀번호와 암호화된 비밀번호 비교
+            if (passwordEncoder.matches(password, userEntity.getUserPassword())) {
+                // 비밀번호가 일치할 경우 UserEntity를 UserDTO로 변환하여 반환
+                return toUserDTO(userEntity);
+            } else {
+                // 비밀번호가 일치하지 않을 경우 예외 발생
+                throw new RuntimeException("Invalid email or password");
+            }
         } else {
             // 사용자가 존재하지 않을 경우 예외 발생
             throw new RuntimeException("Invalid email or password");
