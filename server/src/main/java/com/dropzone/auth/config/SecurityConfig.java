@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     // CORS 설정
                             CorsConfiguration config = new CorsConfiguration();
-                            config.setAllowedOrigins(List.of("http://localhost:*", "https://j11d110.p.ssafy.io")); // 특정 출처 허용
+                            config.setAllowedOriginPatterns(List.of("*")); // 특정 출처 허용
                             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));  // 허용할 HTTP 메서드
                             config.setAllowedHeaders(List.of("*"));  // 모든 헤더 허용
                             config.setAllowCredentials(true);

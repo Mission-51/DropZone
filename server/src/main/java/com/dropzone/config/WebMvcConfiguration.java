@@ -16,8 +16,8 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
             public void addCorsMappings(CorsRegistry registry) {
                 // 모든 경로에 대해 CORS 설정을 적용
                 registry.addMapping("/**")
-                        // 모든 도메인에서의 요청을 허용
-                        .allowedOriginPatterns("http://localhost:*", "https://j11d110.p.ssafy.io")
+                        // 특정 도메인에서의 요청을 허용
+                        .allowedOriginPatterns("*")
                         // 모든 요청 헤더를 허용
                         .allowedHeaders("*")
                         // 허용할 HTTP 메서드를 지정 (GET, POST, PUT, DELETE, PATCH 등)
