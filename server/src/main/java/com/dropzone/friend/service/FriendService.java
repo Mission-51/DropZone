@@ -43,7 +43,7 @@ public class FriendService {
             FriendReponseDto friendReponseDto = FriendReponseDto.builder()
                     .message("자기 자신한테는 친구 요청을 보낼 수 없습니다!")
                     .build();
-            return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+            return new ResponseEntity<>(friendReponseDto, HttpStatus.BAD_REQUEST);
         }
 
         // 유저 정보를 가져오기
@@ -60,12 +60,12 @@ public class FriendService {
                 FriendReponseDto friendReponseDto = FriendReponseDto.builder()
                         .message("이미 받은 친구 요청이 있습니다!")
                         .build();
-                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+                return new ResponseEntity<>(friendReponseDto, HttpStatus.BAD_REQUEST);
             } else if (friendShip.getUserEmail().equals(toEmail) && friendShip.getFriendEmail().equals(fromEmail)) {
                 FriendReponseDto friendReponseDto = FriendReponseDto.builder()
                         .message("이미 보낸 친구 요청이 있습니다!")
                         .build();
-                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+                return new ResponseEntity<>(friendReponseDto, HttpStatus.BAD_REQUEST);
             }
         }
 
