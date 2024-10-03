@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin("*")
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
-@Tag(name = "친구 API", description = " 친구 추가 / 친구 요청 수락 / 친구 요청 거절 / 친구 목록 조회 ")
+@Tag(name = "친구 API", description = " 친구 추가 / 친구 요청 수락 / 친구 요청 거절 / 친구 목록 조회 / 친구 삭제 ")
 public class FriendController {
 
     // 의존성 주입 받음
@@ -31,13 +31,12 @@ public class FriendController {
 
 
     @PostMapping("/friends/{nickname}")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구추가 API", description = "친구의 email을 이용한 친구 추가")
     public ResponseEntity<?> sendFriendShipRequest(@Valid @PathVariable("nickname") String nickName) throws Exception {
         try {
             // searchByNickname은 UserSearchDTO 객체를 반환하므로 이를 확인
             UserSearchDTO userSearchDTO = userService.searchByNickname(nickName);
-            
+
             // userSearchDTO에서 이메일 정보를 가져오기
             String email = userSearchDTO.getUserEmail();
 
@@ -51,7 +50,6 @@ public class FriendController {
     }
 
     @GetMapping("/friends/received")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "받은 친구 요청 API", description = "친구가 나에게 친구 추가 요청을 보낸 것을 확인할 수 있는 API")
     public ResponseEntity<?> getWaitingFriendInfo() throws Exception {
         // 현재 로그인된 사용자 정보를 가져옴
@@ -60,7 +58,7 @@ public class FriendController {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인되지 않은 사용자입니다.");
         }
-        
+
         // 사용자 정보에서 이메일 추출
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
@@ -74,7 +72,6 @@ public class FriendController {
     }
 
     @GetMapping("/friends/list")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 목록 API", description = "친구 목록을 가져오는 API")
     public ResponseEntity<?> getFriendList() throws Exception {
         // 현재 로그인된 사용자 정보를 가져옴
@@ -83,7 +80,7 @@ public class FriendController {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 되지 않은 사람입니다.");
         }
-        
+
         // 사용자 정보에서 이메일 추출
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
@@ -98,7 +95,6 @@ public class FriendController {
 
     // 친구 요청 수락
     @PostMapping("/friends/approve/{friendShipId}")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 요청 수락 API", description = "친구에게서 온 친구 요청을 수락하는 API")
     public ResponseEntity<?> approveFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.approveFriendShipRequest(friendShipId);
@@ -106,9 +102,15 @@ public class FriendController {
 
     // 친구 요청 거절
     @PostMapping("/friends/refuse/{friendShipId}")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 요청 거절 API", description = "친구에게서 온 친구 요청을 거절하는 API")
     public ResponseEntity<?> refuseFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.refuseFriendShipRequest(friendShipId);
+    }
+
+    // 친구 삭제
+    @DeleteMapping("/friends/delete/{friendShipId}")
+    @Operation(summary = "친구 요청 삭제 API", description = "친구를 삭제하는 API")
+    public ResponseEntity<?> deleteFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+        return friendService.deleteFriendship(friendShipId);
     }
 }

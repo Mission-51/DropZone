@@ -180,9 +180,7 @@ public class FriendService {
 
         // 변경 사항 저장
         friendShipRepository.save(friendShip);
-        System.out.println(friendShip);
         friendShipRepository.save(counterFriendShip);
-        System.out.println(counterFriendShip);
 
         FriendReponseDto friendReponseDto = FriendReponseDto.builder()
                 .message("친구 추가 되었습니다!")
@@ -206,5 +204,25 @@ public class FriendService {
                 .build();
 
         return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+    }
+    
+    // 친구 삭제 기능
+    public ResponseEntity<?> deleteFriendship(Long friendshipId) throws Exception {
+
+        // 수락된 자신의 친구 요청과 상대방의 친구 요청을 찾아오기
+        FriendShipEntity friendShip = friendShipRepository.findById(friendshipId).orElseThrow(() -> new Exception("친구 요청 조회 실패"));
+        FriendShipEntity counterFriendShip = friendShipRepository.findById(friendShip.getCounterpartId()).orElseThrow(() -> new Exception("친구 요청 조회 실패"));
+        
+        // 만약 수락되지 않은 친구 요청이면 예외 반환
+        if (friendShip.getStatus() == FriendShipStatus.WAITTING || counterFriendShip.getStatus() == FriendShipStatus.WAITTING) {
+            return new ResponseEntity<>("친구 상태가 아닙니다!" ,HttpStatus.NOT_FOUND);
+        }
+
+        // 친구 삭제
+        friendShipRepository.delete(friendShip);
+        friendShipRepository.delete(counterFriendShip);
+
+        return new ResponseEntity<>("친구 삭제가 완료되었습니다!", HttpStatus.OK);
+
     }
 }
