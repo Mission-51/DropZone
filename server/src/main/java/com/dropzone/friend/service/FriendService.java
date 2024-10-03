@@ -214,7 +214,7 @@ public class FriendService {
         FriendShipEntity counterFriendShip = friendShipRepository.findById(friendShip.getCounterpartId()).orElseThrow(() -> new Exception("친구 요청 조회 실패"));
         
         // 만약 수락되지 않은 친구 요청이면 예외 반환
-        if (friendShip.getStatus() != FriendShipStatus.WAITTING || counterFriendShip.getStatus() != FriendShipStatus.WAITTING) {
+        if (friendShip.getStatus() == FriendShipStatus.WAITTING || counterFriendShip.getStatus() == FriendShipStatus.WAITTING) {
             return new ResponseEntity<>("친구 상태가 아닙니다!" ,HttpStatus.NOT_FOUND);
         }
 
