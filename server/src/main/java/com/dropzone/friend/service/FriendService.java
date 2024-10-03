@@ -37,7 +37,12 @@ public class FriendService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String fromEmail = userDetails.getUsername();
-        
+
+        // 만약 자기 자신한테 친구 요청을 보냈을 때 예외 처리
+        if (fromEmail.equals(toEmail)) {
+            throw new IllegalArgumentException("자기 자신한테는 친구 요청을 보낼 수 없습니다!");
+        }
+
         // 유저 정보를 가져오기
         UserEntity fromUser = userRepository.findByUserEmail(fromEmail).orElseThrow(() -> new Exception("회원 조회 실패"));
         UserEntity toUser = userRepository.findByUserEmail(toEmail).orElseThrow(() -> new Exception("회원 조회 실패"));
@@ -49,21 +54,9 @@ public class FriendService {
         
         for (FriendShipEntity friendShip : friendShipList) {
             if (friendShip.getUserEmail().equals(fromEmail) && friendShip.getFriendEmail().equals(toEmail)) {
-                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
-                        .message("이미 받은 친구 요청이 있습니다!")
-                        .build();
-                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+                throw new IllegalArgumentException("이미 받은 친구 요청이 있습니다!");
             } else if (friendShip.getUserEmail().equals(toEmail) && friendShip.getFriendEmail().equals(fromEmail)) {
-                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
-                        .message("이미 보낸 친구 요청이 있습니다!")
-                        .build();
-                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
-            } else if (friendShip.getUserEmail().equals(friendShip.getFriendEmail())) {
-                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
-                        .message("자기 자신한테는 친구 요청을 보낼 수 없습니다!")
-                        .build();
-
-                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
+                throw new IllegalArgumentException("이미 보낸 친구 요청이 있습니다!");
             }
         }
 
