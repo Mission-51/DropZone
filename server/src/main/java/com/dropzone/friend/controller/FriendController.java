@@ -31,7 +31,6 @@ public class FriendController {
 
 
     @PostMapping("/friends/{nickname}")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구추가 API", description = "친구의 email을 이용한 친구 추가")
     public ResponseEntity<?> sendFriendShipRequest(@Valid @PathVariable("nickname") String nickName) throws Exception {
         try {
@@ -51,7 +50,6 @@ public class FriendController {
     }
 
     @GetMapping("/friends/received")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "받은 친구 요청 API", description = "친구가 나에게 친구 추가 요청을 보낸 것을 확인할 수 있는 API")
     public ResponseEntity<?> getWaitingFriendInfo() throws Exception {
         // 현재 로그인된 사용자 정보를 가져옴
@@ -74,7 +72,6 @@ public class FriendController {
     }
 
     @GetMapping("/friends/list")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 목록 API", description = "친구 목록을 가져오는 API")
     public ResponseEntity<?> getFriendList() throws Exception {
         // 현재 로그인된 사용자 정보를 가져옴
@@ -98,7 +95,6 @@ public class FriendController {
 
     // 친구 요청 수락
     @PostMapping("/friends/approve/{friendShipId}")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 요청 수락 API", description = "친구에게서 온 친구 요청을 수락하는 API")
     public ResponseEntity<?> approveFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.approveFriendShipRequest(friendShipId);
@@ -106,7 +102,6 @@ public class FriendController {
 
     // 친구 요청 거절
     @PostMapping("/friends/refuse/{friendShipId}")
-    @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "친구 요청 거절 API", description = "친구에게서 온 친구 요청을 거절하는 API")
     public ResponseEntity<?> refuseFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.refuseFriendShipRequest(friendShipId);
