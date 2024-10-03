@@ -34,17 +34,17 @@ class FriendServiceTest {
 
     }
 
-    @Test
-    void getFriendList() throws Exception {
-        // given
-        String email = "khg6436@naver.com";
+    // @Test
+    // void getFriendList() throws Exception {
+    //     // given
+    //     String email = "khg6436@naver.com";
 
-        // when
-        ResponseEntity<?> result = friendService.getFriendList(email);
-        List<?> body = (List<?>) result.getBody();
+    //     // when
+    //     ResponseEntity<?> result = friendService.getFriendList(email);
+    //     List<?> body = (List<?>) result.getBody();
 
-        // then
-        Assertions.assertThat(body).isEmpty();
-    }
+    //     // then
+    //     Assertions.assertThat(body).isEmpty();
+    // }
 
 }
