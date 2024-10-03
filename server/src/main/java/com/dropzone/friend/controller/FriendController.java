@@ -29,7 +29,6 @@ public class FriendController {
     private final UserServiceImpl userService;
     private final FriendService friendService;
 
-
     @PostMapping("/friends/{nickname}")
     @Operation(summary = "친구추가 API", description = "친구의 email을 이용한 친구 추가")
     public ResponseEntity<?> sendFriendShipRequest(@Valid @PathVariable("nickname") String nickName) throws Exception {
