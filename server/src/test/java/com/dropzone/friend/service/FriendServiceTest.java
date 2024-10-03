@@ -1,7 +1,5 @@
 package com.dropzone.friend.service;
 
-import com.dropzone.friend.repository.FriendShipRepository;
-import com.dropzone.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

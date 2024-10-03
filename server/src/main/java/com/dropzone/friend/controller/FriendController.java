@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin("*")
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
-@Tag(name = "친구 API", description = " 친구 추가 / 친구 요청 수락 / 친구 요청 거절 / 친구 목록 조회 ")
+@Tag(name = "친구 API", description = " 친구 추가 / 친구 요청 수락 / 친구 요청 거절 / 친구 목록 조회 / 친구 삭제 ")
 public class FriendController {
 
     // 의존성 주입 받음
@@ -110,5 +110,12 @@ public class FriendController {
     @Operation(summary = "친구 요청 거절 API", description = "친구에게서 온 친구 요청을 거절하는 API")
     public ResponseEntity<?> refuseFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.refuseFriendShipRequest(friendShipId);
+    }
+
+    // 친구 삭제
+    @DeleteMapping("/friends/delete/{friendShipId}")
+    @Operation(summary = "친구 요청 삭제 API", description = "친구를 삭제하는 API")
+    public ResponseEntity<?> deleteFrindShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+        return friendService.deleteFriendship(friendShipId);
     }
 }
