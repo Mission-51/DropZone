@@ -61,10 +61,10 @@ dependencies {
     
     // 스프링 웹소켓
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    implementation 'org.webjars:stomp-websocket'
+    implementation 'org.webjars:stomp-websocket:2.3.3'
     implementation 'org.springframework:spring-messaging'
     implementation 'org.springframework.security:spring-security-messaging'
-    implementation 'org.webjars:sockjs-client'
+    implementation 'org.webjars:sockjs-client:1.5.1'
 
 
     // swagger Annotation
