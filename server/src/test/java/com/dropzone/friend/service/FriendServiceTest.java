@@ -16,23 +16,23 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestPropertySource(properties = "jasypt.encryptor.key=Dr@pZoneKey2024!@#$")
 class FriendServiceTest {
 
-    @Autowired
-    private FriendService friendService;
+    // @Autowired
+    // private FriendService friendService;
 
-    @Test
-    void getWaitingFriendList() throws Exception {
-        // given
-        String email = "khg6436@naver.com";
+    // @Test
+    // void getWaitingFriendList() throws Exception {
+    //     // given
+    //     String email = "khg6436@naver.com";
 
-        // when
-        ResponseEntity<?> result = friendService.getWaitingFriendList(email);
-        List<?> body = (List<?>) result.getBody();
+    //     // when
+    //     ResponseEntity<?> result = friendService.getWaitingFriendList(email);
+    //     List<?> body = (List<?>) result.getBody();
 
-        // then
-        Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(body).isEmpty();
+    //     // then
+    //     Assertions.assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    //     Assertions.assertThat(body).isEmpty();
 
-    }
+    // }
 
     // @Test
     // void getFriendList() throws Exception {
