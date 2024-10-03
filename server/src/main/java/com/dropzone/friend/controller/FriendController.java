@@ -37,7 +37,7 @@ public class FriendController {
         try {
             // searchByNickname은 UserSearchDTO 객체를 반환하므로 이를 확인
             UserSearchDTO userSearchDTO = userService.searchByNickname(nickName);
-            
+
             // userSearchDTO에서 이메일 정보를 가져오기
             String email = userSearchDTO.getUserEmail();
 
@@ -60,7 +60,7 @@ public class FriendController {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인되지 않은 사용자입니다.");
         }
-        
+
         // 사용자 정보에서 이메일 추출
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
@@ -83,7 +83,7 @@ public class FriendController {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 되지 않은 사람입니다.");
         }
-        
+
         // 사용자 정보에서 이메일 추출
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();

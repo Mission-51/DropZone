@@ -180,9 +180,7 @@ public class FriendService {
 
         // 변경 사항 저장
         friendShipRepository.save(friendShip);
-        System.out.println(friendShip);
         friendShipRepository.save(counterFriendShip);
-        System.out.println(counterFriendShip);
 
         FriendReponseDto friendReponseDto = FriendReponseDto.builder()
                 .message("친구 추가 되었습니다!")
