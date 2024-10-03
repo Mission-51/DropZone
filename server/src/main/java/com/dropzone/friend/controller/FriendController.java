@@ -110,7 +110,7 @@ public class FriendController {
     // 친구 삭제
     @DeleteMapping("/friends/delete/{friendShipId}")
     @Operation(summary = "친구 요청 삭제 API", description = "친구를 삭제하는 API")
-    public ResponseEntity<?> deleteFrindShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+    public ResponseEntity<?> deleteFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
         return friendService.deleteFriendship(friendShipId);
     }
 }
