@@ -40,7 +40,10 @@ public class FriendService {
 
         // 만약 자기 자신한테 친구 요청을 보냈을 때 예외 처리
         if (fromEmail.equals(toEmail)) {
-            throw new IllegalArgumentException("자기 자신한테는 친구 요청을 보낼 수 없습니다!");
+            FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                    .message("자기 자신한테는 친구 요청을 보낼 수 없습니다!")
+                    .build();
+            return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
         }
 
         // 유저 정보를 가져오기
@@ -54,9 +57,15 @@ public class FriendService {
         
         for (FriendShipEntity friendShip : friendShipList) {
             if (friendShip.getUserEmail().equals(fromEmail) && friendShip.getFriendEmail().equals(toEmail)) {
-                throw new IllegalArgumentException("이미 받은 친구 요청이 있습니다!");
+                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                        .message("이미 받은 친구 요청이 있습니다!")
+                        .build();
+                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
             } else if (friendShip.getUserEmail().equals(toEmail) && friendShip.getFriendEmail().equals(fromEmail)) {
-                throw new IllegalArgumentException("이미 보낸 친구 요청이 있습니다!");
+                FriendReponseDto friendReponseDto = FriendReponseDto.builder()
+                        .message("이미 보낸 친구 요청이 있습니다!")
+                        .build();
+                return new ResponseEntity<>(friendReponseDto, HttpStatus.OK);
             }
         }
 
