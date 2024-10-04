@@ -32,10 +32,10 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
 
-//        // 사용자가 이미 로그인된 상태라면 새로운 로그인 시도 방지
-//        if (user.isUserIsOnline()) {
-//            return null;
-//        }
+       // 사용자가 이미 로그인된 상태라면 새로운 로그인 시도 방지
+       if (user.isUserIsOnline()) {
+           return null;
+       }
 
         // 사용자의 이메일, 비밀번호, 권한을 포함한 UserDetails 객체를 반환
         return org.springframework.security.core.userdetails.User.withUsername(user.getUserEmail())
