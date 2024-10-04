@@ -80,8 +80,11 @@ dependencies {
     implementation 'jakarta.mail:jakarta.mail-api:2.0.1'
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
-
     testImplementation 'com.h2database:h2'
+
+    // api 요청 시간 제어
+    implementation 'com.github.vladimir-bukhtoyarov:bucket4j-core:7.2.0'
+
 }
 
 tasks.named('test') {
