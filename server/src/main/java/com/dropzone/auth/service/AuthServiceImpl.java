@@ -33,9 +33,9 @@ public class AuthServiceImpl implements AuthService {
             // 입력된 비밀번호와 암호화된 비밀번호 비교
             if (passwordEncoder.matches(password, userEntity.getUserPassword())) {
 
-                // 로그인 성공 시 is_online 값을 true로 설정
-//                userEntity.setUserIsOnline(true);
-//                userRepository.save(userEntity);
+//                 로그인 성공 시 is_online 값을 true로 설정
+                userEntity.setUserIsOnline(true);
+                userRepository.save(userEntity);
 
                 // 비밀번호가 일치할 경우 UserEntity를 UserDTO로 변환하여 반환
                 return toUserDTO(userEntity);
