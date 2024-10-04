@@ -28,7 +28,7 @@ spring:
     mongodb:
       uri: mongodb://mongodb_container:27017/DropzoneDB
       auto-index-creation: true
-  jasypt:
-    encryptor:
-      bean: jasyptStringEncryptor
-      key: Dr@pZoneKey2024!@#$
+  # jasypt:
+  #   encryptor:
+  #     bean: jasyptStringEncryptor
+  #     key: Dr@pZoneKey2024!@#$

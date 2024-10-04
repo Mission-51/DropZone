@@ -1,20 +1,20 @@
-package com.dropzone.friend.service;
+// package com.dropzone.friend.service;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.TestPropertySource;
+// import org.assertj.core.api.Assertions;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.boot.test.context.SpringBootTest;
+// import org.springframework.http.HttpStatus;
+// import org.springframework.http.ResponseEntity;
+// import org.springframework.test.context.TestPropertySource;
 
-import java.util.List;
+// import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+// import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@TestPropertySource(properties = "jasypt.encryptor.key=Dr@pZoneKey2024!@#$")
-class FriendServiceTest {
+// @SpringBootTest
+// @TestPropertySource(properties = "jasypt.encryptor.key=Dr@pZoneKey2024!@#$")
+// class FriendServiceTest {
 
     // @Autowired
     // private FriendService friendService;
@@ -47,4 +47,4 @@ class FriendServiceTest {
     //     Assertions.assertThat(body).isEmpty();
     // }
 
-}
+// }
