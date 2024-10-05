@@ -64,11 +64,7 @@ public class SecurityConfig {
                             return config;
                         }))
                 .sessionManagement(sessionManagement ->
-                        sessionManagement
-                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                                .maximumSessions(1) // 한 사용자당 하나의 세션만 허용
-                                .maxSessionsPreventsLogin(true)
-                )
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 세션을 사용하지 않도록 설정 (JWT로 인증을 처리하므로 STATELESS 모드 사용)
                 .authorizeHttpRequests(authorizeHttpRequests ->
                                 authorizeHttpRequests
