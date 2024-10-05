@@ -10,8 +10,8 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Service
+@Slf4j
 class EmailServiceImpl implements EmailService {
 
     @Autowired

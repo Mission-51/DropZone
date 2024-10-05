@@ -39,4 +39,5 @@ spring:
 jasypt:
   encryptor:
     bean: jasyptStringEncryptor
-    key: ${JASYPT_KEY}
+    key: ${jasypt.encryptor.key}
+#    key: Dr@pZoneKey2024!@#$

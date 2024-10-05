@@ -32,6 +32,11 @@ public class AuthServiceImpl implements AuthService {
 
             // 입력된 비밀번호와 암호화된 비밀번호 비교
             if (passwordEncoder.matches(password, userEntity.getUserPassword())) {
+
+//                 로그인 성공 시 is_online 값을 true로 설정
+                userEntity.setUserIsOnline(true);
+                userRepository.save(userEntity);
+
                 // 비밀번호가 일치할 경우 UserEntity를 UserDTO로 변환하여 반환
                 return toUserDTO(userEntity);
             } else {
@@ -43,4 +48,22 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid email or password");
         }
     }
+
+    // @Override
+    // public void logout(String email) {
+    //     // 이메일로 사용자 찾기
+    //     Optional<UserEntity> loginUserEntity = userRepository.findByUserEmail(email);
+
+    //     // 사용자가 존재할 경우
+    //     if (loginUserEntity.isPresent()) {
+    //         UserEntity userEntity = loginUserEntity.get();
+
+    //         // 로그아웃 처리: is_online을 false로 설정
+    //         userEntity.setUserIsOnline(false);
+    //         userRepository.save(userEntity); // DB에 업데이트
+    //     } else {
+    //         // 사용자가 존재하지 않을 경우 예외 발생
+    //         throw new RuntimeException("Invalid email");
+    //     }
+    // }
 }

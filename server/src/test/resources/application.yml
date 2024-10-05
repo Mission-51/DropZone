@@ -1,12 +1,21 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
-  h2:
-    console:
-      enabled: true
+    url: jdbc:mysql://j11d110.p.ssafy.io:3415/DropzoneDB?serverTimezone=Asia/Seoul
+    username: root
+    password: dropzoned110
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ssafyd110@gmail.com
+    password: qzvzxehofrkhhfat
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true
   jpa:
     hibernate:
       ddl-auto: update  # 또는 create-drop (테스트 후 DB 삭제)
@@ -15,7 +24,11 @@ spring:
       hibernate:
         format_sql: true
         use_sql_comments: true
-  jasypt:
-    encryptor:
-      bean: jasyptStringEncryptor
-      key: ${JASYPT_KEY}
+  data:
+    mongodb:
+      uri: mongodb://mongodb_container:27017/DropzoneDB
+      auto-index-creation: true
+  # jasypt:
+  #   encryptor:
+  #     bean: jasyptStringEncryptor
+  #     key: Dr@pZoneKey2024!@#$
