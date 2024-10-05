@@ -1,4 +1,4 @@
-package com.dropzone.auth.session;
+package com.dropzone.auth.service;
 
 public interface LoginSessionService {
     void saveLoginSession(int userId, String token);  // 로그인 세션 저장

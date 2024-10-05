@@ -1,6 +1,5 @@
 package com.dropzone.auth.service;
 
-import com.dropzone.auth.session.LoginSessionService;
 import com.dropzone.user.dto.UserDTO;
 import com.dropzone.user.entity.UserEntity;
 import com.dropzone.user.repository.UserRepository;

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class LoginSessionServiceImpl implements com.dropzone.auth.session.LoginSessionService {
+public class LoginSessionServiceImpl implements LoginSessionService {
 
     private final LoginSessionRepository loginSessionRepository;
 
