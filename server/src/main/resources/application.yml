@@ -28,22 +28,15 @@ spring:
             non_contextual_creation: true
     show-sql: true  # SQL 쿼리 로깅
 
-  thymeleaf:
-    cache: false  # Thymeleaf 캐시 비활성화
   data:
     mongodb:
       uri: mongodb://mongodb_container:27017/DropzoneDB
       auto-index-creation: true
 
+  thymeleaf:
+    cache: false  # Thymeleaf 캐시 비활성화
+
 jasypt:
   encryptor:
     bean: jasyptStringEncryptor
-    key: Dr@pZoneKey2024!@#$
-
-logging:
-  level:
-    org:
-      springframework:
-        messaging: DEBUG
-        web:
-          socket: DEBUG
+    key: ${JASYPT_KEY}

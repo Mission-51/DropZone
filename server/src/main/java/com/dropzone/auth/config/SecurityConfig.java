@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     // CORS 설정
                             CorsConfiguration config = new CorsConfiguration();
-                            config.setAllowedOrigins(List.of("http://localhost:5173")); // 특정 출처 허용
+                            config.setAllowedOriginPatterns(List.of("*")); // 특정 출처 허용
                             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));  // 허용할 HTTP 메서드
                             config.setAllowedHeaders(List.of("*"));  // 모든 헤더 허용
                             config.setAllowCredentials(true);
@@ -68,15 +68,7 @@ public class SecurityConfig {
                 // 세션을 사용하지 않도록 설정 (JWT로 인증을 처리하므로 STATELESS 모드 사용)
                 .authorizeHttpRequests(authorizeHttpRequests ->
                                 authorizeHttpRequests
-                                        .requestMatchers("/ws/**").permitAll()
-                                        .requestMatchers(
-                                                "/swagger-ui/**",
-                                                "/v3/api-docs/**",
-                                                "/swagger-resources/**",
-                                                "/webjars/**",
-                                                "/swagger-ui.html"
-                                        ).permitAll()
-                                        .requestMatchers("GET", "/**").permitAll()
+                                        .requestMatchers("/**").permitAll()
                                         .anyRequest().authenticated());
         http
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
