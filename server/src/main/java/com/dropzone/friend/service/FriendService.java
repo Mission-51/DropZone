@@ -104,7 +104,6 @@ public class FriendService {
         friendShipRepository.save(friendShipTo);
         friendShipRepository.save(friendShipFrom);
 
-
         // 각각의 유저 리스트에 저장
         fromUser.getFriendshipList().add(friendShipTo);
         toUser.getFriendshipList().add(friendShipFrom);

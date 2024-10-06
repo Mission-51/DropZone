@@ -112,7 +112,7 @@ public class AuthController {
                 String email = jwtTokenProvider.getEmailFromToken(accessToken);
 
                 // AuthService에서 로그아웃 처리
-                authService.logout(email);
+                //authService.logout(email);
 
                 // JWT 토큰 무효화 (블랙리스트 처리 등)
                 jwtTokenProvider.invalidateToken(accessToken);
