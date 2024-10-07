@@ -29,4 +29,11 @@ public class UserRankController {
     public List<UserRankDTO> getRankings(@RequestParam Optional<Integer> page) {
         return userRankService.getRankings(page);
     }
+
+    // 특정 유저의 랭킹 정보 반환
+    @GetMapping("/user")
+    @Operation(summary = "특정 유저 랭킹", description = "특정 유저의 랭킹 정보 반환")
+    public UserRankDTO getUserRank(@RequestParam int userId) {
+        return userRankService.getUserRank(userId);
+    }
 }
