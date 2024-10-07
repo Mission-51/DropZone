@@ -46,4 +46,19 @@ public class UserRankServiceImpl implements UserRankService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public UserRankDTO getUserRank(int userId) {
+        UserStatisticsEntity user = userRankRepository.findUserStatisticsByUserId(userId);
+
+        if (user == null) {
+            throw new IllegalArgumentException("유저를 찾을 수 없습니다.");
+        }
+
+        // 유저의 랭킹 계산
+        int userRank = userRankRepository.findUserRank(user.getRankingPoints(), user.getTotalWins());
+
+        // UserRankDTO로 반환
+        return new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(), userRank);
+    }
 }

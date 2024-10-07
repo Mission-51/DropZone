@@ -5,6 +5,7 @@ import com.dropzone.user.entity.UserEntity;
 import com.dropzone.user.repository.UserRepository;
 import com.dropzone.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RedisTemplate redisTemplate;
 
     // 이메일과 비밀번호로 로그인하는 메서드
     @Override
@@ -50,20 +52,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(String email) {
-        // 이메일로 사용자 찾기
-        Optional<UserEntity> loginUserEntity = userRepository.findByUserEmail(email);
-
-        // 사용자가 존재할 경우
-        if (loginUserEntity.isPresent()) {
-            UserEntity userEntity = loginUserEntity.get();
-
-            // 로그아웃 처리: is_online을 false로 설정
-            userEntity.setUserIsOnline(false);
-            userRepository.save(userEntity); // DB에 업데이트
-        } else {
-            // 사용자가 존재하지 않을 경우 예외 발생
-            throw new RuntimeException("Invalid email");
-        }
+    public void logout(String userId) {
+        // Redis에서 사용자 토큰 삭제
+        redisTemplate.delete(userId);
     }
 }
