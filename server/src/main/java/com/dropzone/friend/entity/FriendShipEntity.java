@@ -3,6 +3,7 @@ package com.dropzone.friend.entity;
 import com.dropzone.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -21,23 +22,15 @@ public class FriendShipEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user")
     private UserEntity user;
 
-    @Column(name = "user_nickname")
-    private String userNickname;
-
-    @Column(name = "user_email")
-    private String userEmail;
-
-    @Column(name = "friend_nickname")
-    private String friendNickname;
-
-    @Column(name = "friend_email")
-    private String friendEmail;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "friend")
+    private UserEntity friend;
 
     @Column(name = "friend_ship_status")
     @Enumerated(EnumType.STRING)
@@ -46,8 +39,8 @@ public class FriendShipEntity {
     @Column(name = "is_from")
     private boolean isFrom;
 
-    @Column(name = "counter_part_id")
-    private Long counterpartId;
+    @Column(name = "counter_id")
+    private int counterId;
 
     @CreatedDate
     @Column(name = "request_created_at")
