@@ -46,17 +46,18 @@ public class UserRankServiceImpl implements UserRankService {
         List<UserStatisticsEntity> content = rankingPage.getContent();
         List<UserRankDTO> result = new ArrayList<>();
 
-        // 첫 번째 페이지에서는 1등부터 시작하고, 그 이후에는 이전 페이지의 마지막 등수를 유지
-        int lastRank = 1;
-        int currentRank = lastRank; // 마지막 유저의 등수 기록
-        int lastRankingPoints = content.isEmpty() ? -1 : content.get(0).getRankingPoints(); // 첫 번째 유저의 랭킹 점수 저장
+        // 첫 번째 페이지에서 1등부터 시작하고, 그 이후에는 이전 페이지의 마지막 등수를 유지
+        int startRank = pageable.getPageNumber() * pageable.getPageSize() + 1; // 페이지에 따른 시작 순위 계산
+        int currentRank = startRank; // 현재 페이지의 첫 번째 순위
+        int lastRank = currentRank; // 마지막 유저의 등수 기록
+        int lastRankingPoints = content.get(0).getRankingPoints(); // 첫 번째 유저의 랭킹 점수 저장
 
         for (int i = 0; i < content.size(); i++) {
             UserStatisticsEntity user = content.get(i);
 
             // 현재 유저와 이전 유저의 점수가 같으면 같은 순위로 표시
             if (user.getRankingPoints() != lastRankingPoints) {
-                currentRank = lastRank + 1;
+                currentRank = lastRank + 1; // 점수가 다르면 순위를 증가시킴
             }
 
             result.add(new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(), currentRank));
@@ -67,6 +68,7 @@ public class UserRankServiceImpl implements UserRankService {
 
         return result;
     }
+
 
     @Override
     public UserRankDTO getUserRank(int userId) {
