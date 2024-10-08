@@ -1,153 +1,186 @@
 using UnityEngine;
+using Photon.Pun;
 
 public class WeaponManager : MonoBehaviour
 {
-    public GameObject[] leftWeapons;  // ¿Ş¼Õ¿¡ ÀåÂøÇÒ ¹«±â ¹è¿­ (Hierarchy¿¡¼­ ¹Ì¸® À§Ä¡ÇØ ÀÖ´Â ¿ÀºêÁ§Æ®)
-    public GameObject[] rightWeapons; // ¿À¸¥¼Õ¿¡ ÀåÂøÇÒ ¹«±â ¹è¿­ (Hierarchy¿¡¼­ ¹Ì¸® À§Ä¡ÇØ ÀÖ´Â ¿ÀºêÁ§Æ®)
+    public GameObject[] leftWeapons;  // ì™¼ì†ì— ì¥ì°©í•  ë¬´ê¸° ë°°ì—´ (Hierarchyì—ì„œ ë¯¸ë¦¬ ìœ„ì¹˜í•´ ìˆëŠ” ì˜¤ë¸Œì íŠ¸)
+    public GameObject[] rightWeapons; // ì˜¤ë¥¸ì†ì— ì¥ì°©í•  ë¬´ê¸° ë°°ì—´ (Hierarchyì—ì„œ ë¯¸ë¦¬ ìœ„ì¹˜í•´ ìˆëŠ” ì˜¤ë¸Œì íŠ¸)
 
-    public GameObject[] attributeEffects;  // ¹«±â ¼Ó¼º¿¡ µû¸¥ ÀÌÆåÆ® ¹è¿­
+    public GameObject[] attributeEffects;  // ë¬´ê¸° ì†ì„±ì— ë”°ë¥¸ ì´í™íŠ¸ ë°°ì—´
 
-    private int currentWeaponIndex = 0; // ÇöÀç ¼±ÅÃµÈ ¹«±â ÀÎµ¦½º
+    private int currentWeaponIndex = 0; // í˜„ì¬ ì„ íƒëœ ë¬´ê¸° ì¸ë±ìŠ¤
 
-    private Weapon currentWeapon; // ÇöÀç ¼±ÅÃµÈ ¹«±â
+    private Weapon currentWeapon; // í˜„ì¬ ì„ íƒëœ ë¬´ê¸°
 
     void Start()
     {
-        // ½ÃÀÛÇÒ ¶§ Ã¹ ¹øÂ° ¹«±â¸¸ È°¼ºÈ­
+        // ì‹œì‘í•  ë•Œ ì²« ë²ˆì§¸ ë¬´ê¸°ë§Œ í™œì„±í™”
         SwitchWeapon(0);
 
-        // ¹«±â º¯°æ ¹× »óÅÂ´Â ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î PhotonView¿Í RPC »ç¿ë ÇÊ¿ä
+        // ë¬´ê¸° ë³€ê²½ ë° ìƒíƒœëŠ” ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì— ë™ê¸°í™”ë˜ì–´ì•¼ í•˜ë¯€ë¡œ PhotonViewì™€ RPC ì‚¬ìš© í•„ìš”
     }
 
-    // ¹«±â ±³Ã¼ ·ÎÁ÷
-    public void HandleWeaponSwitch()
-    {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            SwitchWeapon(0); // 1¹ø ¹«±â
-            // ¹«±â º¯°æÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­µÇ¾î¾ß ÇÔ
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            SwitchWeapon(1); // 2¹ø ¹«±â
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            SwitchWeapon(2); // 3¹ø ¹«±â
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            SwitchWeapon(3); // 4¹ø ¹«±â
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            SwitchWeapon(4); // 5¹ø ¹«±â
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            SwitchWeapon(5); // 6¹ø ¹«±â
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            SwitchWeapon(6); // 7¹ø ¹«±â
-        }
 
-        // ¹«±â ±³Ã¼´Â ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿Í µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î, RPC·Î ¹«±â º¯°æ »óÅÂ¸¦ Àü´ŞÇÒ ¼ö ÀÖÀ½
+    // ë¬´ê¸° êµì²´ ë¡œì§ - StoreUIì—ì„œ í˜¸ì¶œ
+    public void SwitchWeapon(int weaponIndex)
+    {
+        //Debug.Log($"{weaponIndex}ë²ˆì§¸ ë¬´ê¸°ë¡œ ë³€ê²½í•©ë‹ˆë‹¤.");
+
+
+        //// ì™¼ì† ë¬´ê¸°ê°€ ìˆëŠ” ê²½ìš°ì—ë§Œ ì²˜ë¦¬
+        //if (leftWeapons.Length > 0)
+        //{
+        //    // ë²”ìœ„ë¥¼ ë„˜ëŠ” ì¸ë±ìŠ¤ê°€ ì…ë ¥ë˜ì§€ ì•Šë„ë¡ ì˜ˆì™¸ ì²˜ë¦¬
+        //    if (weaponIndex < leftWeapons.Length)
+        //    {
+        //        // ëª¨ë“  ì™¼ì† ë¬´ê¸°ë¥¼ ë¹„í™œì„±í™”í•˜ê³  ì„ íƒí•œ ë¬´ê¸°ë§Œ í™œì„±í™”
+        //        for (int i = 0; i < leftWeapons.Length; i++)
+        //        {
+        //            leftWeapons[i].SetActive(i == weaponIndex);
+        //        }
+        //        // í˜„ì¬ ì„ íƒëœ ì™¼ì† ë¬´ê¸°ì˜ Weapon ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì˜´
+        //        currentWeapon = leftWeapons[weaponIndex].GetComponent<Weapon>();
+        //    }
+        //}
+
+        //// ì˜¤ë¥¸ì† ë¬´ê¸°ê°€ ìˆëŠ” ê²½ìš°ì—ë§Œ ì²˜ë¦¬
+        //if (rightWeapons.Length > 0)
+        //{
+        //    // ë²”ìœ„ë¥¼ ë„˜ëŠ” ì¸ë±ìŠ¤ê°€ ì…ë ¥ë˜ì§€ ì•Šë„ë¡ ì˜ˆì™¸ ì²˜ë¦¬
+        //    if (weaponIndex < rightWeapons.Length)
+        //    {
+        //        // ëª¨ë“  ì˜¤ë¥¸ì† ë¬´ê¸°ë¥¼ ë¹„í™œì„±í™”í•˜ê³  ì„ íƒí•œ ë¬´ê¸°ë§Œ í™œì„±í™”
+        //        for (int i = 0; i < rightWeapons.Length; i++)
+        //        {
+        //            rightWeapons[i].SetActive(i == weaponIndex);
+        //        }
+        //        // í˜„ì¬ ì„ íƒëœ ì˜¤ë¥¸ì† ë¬´ê¸°ì˜ Weapon ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì˜´
+        //        currentWeapon = rightWeapons[weaponIndex].GetComponent<Weapon>();
+        //    }
+        //}
+
+        //// í˜„ì¬ ë¬´ê¸° ì¸ë±ìŠ¤ë¥¼ ì—…ë°ì´íŠ¸
+        //currentWeaponIndex = weaponIndex;
+
+        //// ë¬´ê¸° ì†ì„±ì— ë”°ë¥¸ ê³µê²© ì´í™íŠ¸ í™œì„±í™” (ë°°ì—´ì´ ìˆëŠ” ê²½ìš°ì—ë§Œ, ê·¼ê±°ë¦¬ì—ë§Œ ì‚¬ìš©)
+        //if (attributeEffects != null && attributeEffects.Length > 0)
+        //{
+        //    ActivateEffectBasedOnAttribute();
+        //}    
+
+        // ë¡œì»¬ ë¬´ê¸° ë³€ê²½
+        Debug.Log($"{weaponIndex}ë²ˆì§¸ ë¬´ê¸°ë¡œ ë³€ê²½í•©ë‹ˆë‹¤.");
+
+        // ëª¨ë“  í´ë¼ì´ì–¸íŠ¸ì—ì„œ ë¬´ê¸° ë³€ê²½ì´ ë™ê¸°í™”ë˜ë„ë¡ RPC í˜¸ì¶œ
+        PhotonView photonView = PhotonView.Get(this);
+        if (photonView != null)
+        {
+            photonView.RPC("RPC_SwitchWeapon", RpcTarget.AllBuffered, weaponIndex);
+        }
     }
 
-    private void SwitchWeapon(int weaponIndex)
+    [PunRPC]
+    public void RPC_SwitchWeapon(int weaponIndex)
     {
-        // ¿Ş¼Õ ¹«±â°¡ ÀÖ´Â °æ¿ì¿¡¸¸ Ã³¸®
+        // ë¬´ê¸° êµì²´ ë¡œì§ ì‹¤í–‰
+        Debug.Log($"{weaponIndex}ë²ˆì§¸ ë¬´ê¸°ë¡œ ë³€ê²½í•©ë‹ˆë‹¤. (RPC í˜¸ì¶œ)");
+
+        // ì™¼ì† ë¬´ê¸°ê°€ ìˆëŠ” ê²½ìš°ì—ë§Œ ì²˜ë¦¬
         if (leftWeapons.Length > 0)
         {
-            // ¹üÀ§¸¦ ³Ñ´Â ÀÎµ¦½º°¡ ÀÔ·ÂµÇÁö ¾Êµµ·Ï ¿¹¿Ü Ã³¸®
+            // ë²”ìœ„ë¥¼ ë„˜ëŠ” ì¸ë±ìŠ¤ê°€ ì…ë ¥ë˜ì§€ ì•Šë„ë¡ ì˜ˆì™¸ ì²˜ë¦¬
             if (weaponIndex < leftWeapons.Length)
             {
-                // ¸ğµç ¿Ş¼Õ ¹«±â¸¦ ºñÈ°¼ºÈ­ÇÏ°í ¼±ÅÃÇÑ ¹«±â¸¸ È°¼ºÈ­
+                // ëª¨ë“  ì™¼ì† ë¬´ê¸°ë¥¼ ë¹„í™œì„±í™”í•˜ê³  ì„ íƒí•œ ë¬´ê¸°ë§Œ í™œì„±í™”
                 for (int i = 0; i < leftWeapons.Length; i++)
                 {
                     leftWeapons[i].SetActive(i == weaponIndex);
                 }
-                // ÇöÀç ¼±ÅÃµÈ ¿Ş¼Õ ¹«±âÀÇ Weapon ÄÄÆ÷³ÍÆ®¸¦ °¡Á®¿È
+                // í˜„ì¬ ì„ íƒëœ ì™¼ì† ë¬´ê¸°ì˜ Weapon ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì˜´
                 currentWeapon = leftWeapons[weaponIndex].GetComponent<Weapon>();
             }
         }
 
-        // ¿À¸¥¼Õ ¹«±â°¡ ÀÖ´Â °æ¿ì¿¡¸¸ Ã³¸®
+        // ì˜¤ë¥¸ì† ë¬´ê¸°ê°€ ìˆëŠ” ê²½ìš°ì—ë§Œ ì²˜ë¦¬
         if (rightWeapons.Length > 0)
         {
-            // ¹üÀ§¸¦ ³Ñ´Â ÀÎµ¦½º°¡ ÀÔ·ÂµÇÁö ¾Êµµ·Ï ¿¹¿Ü Ã³¸®
+            // ë²”ìœ„ë¥¼ ë„˜ëŠ” ì¸ë±ìŠ¤ê°€ ì…ë ¥ë˜ì§€ ì•Šë„ë¡ ì˜ˆì™¸ ì²˜ë¦¬
             if (weaponIndex < rightWeapons.Length)
             {
-                // ¸ğµç ¿À¸¥¼Õ ¹«±â¸¦ ºñÈ°¼ºÈ­ÇÏ°í ¼±ÅÃÇÑ ¹«±â¸¸ È°¼ºÈ­
+                // ëª¨ë“  ì˜¤ë¥¸ì† ë¬´ê¸°ë¥¼ ë¹„í™œì„±í™”í•˜ê³  ì„ íƒí•œ ë¬´ê¸°ë§Œ í™œì„±í™”
                 for (int i = 0; i < rightWeapons.Length; i++)
                 {
                     rightWeapons[i].SetActive(i == weaponIndex);
                 }
-                // ÇöÀç ¼±ÅÃµÈ ¿À¸¥¼Õ ¹«±âÀÇ Weapon ÄÄÆ÷³ÍÆ®¸¦ °¡Á®¿È
+                // í˜„ì¬ ì„ íƒëœ ì˜¤ë¥¸ì† ë¬´ê¸°ì˜ Weapon ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì˜´
                 currentWeapon = rightWeapons[weaponIndex].GetComponent<Weapon>();
             }
         }
 
-        // ÇöÀç ¹«±â ÀÎµ¦½º¸¦ ¾÷µ¥ÀÌÆ®
+        // í˜„ì¬ ë¬´ê¸° ì¸ë±ìŠ¤ë¥¼ ì—…ë°ì´íŠ¸
         currentWeaponIndex = weaponIndex;
 
-        // ¹«±â ¼Ó¼º¿¡ µû¸¥ °ø°İ ÀÌÆåÆ® È°¼ºÈ­ (¹è¿­ÀÌ ÀÖ´Â °æ¿ì¿¡¸¸, ±Ù°Å¸®¿¡¸¸ »ç¿ë)
+        // ë¬´ê¸° ì†ì„±ì— ë”°ë¥¸ ê³µê²© ì´í™íŠ¸ í™œì„±í™” (ë°°ì—´ì´ ìˆëŠ” ê²½ìš°ì—ë§Œ, ê·¼ê±°ë¦¬ì—ë§Œ ì‚¬ìš©)
         if (attributeEffects != null && attributeEffects.Length > 0)
         {
             ActivateEffectBasedOnAttribute();
         }
-
-        // ¹«±â ¼Ó¼º ¹× ¹«±â º¯°æ »óÅÂµµ ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
     }
 
-    // ¹«±â ¼Ó¼º¿¡ µû¸¥ ÀÌÆåÆ®¸¦ È°¼ºÈ­ÇÏ´Â ÇÔ¼ö
+
+    // ë¬´ê¸° ì†ì„±ì— ë”°ë¥¸ ì´í™íŠ¸ë¥¼ í™œì„±í™”í•˜ëŠ” í•¨ìˆ˜
     private void ActivateEffectBasedOnAttribute()
     {
-        // ¸ğµç ÀÌÆåÆ®¸¦ ºñÈ°¼ºÈ­
+        // ëª¨ë“  ì´í™íŠ¸ë¥¼ ë¹„í™œì„±í™”
         foreach (var effect in attributeEffects)
         {
             effect.SetActive(false);
         }
 
-        // ÇöÀç ¹«±âÀÇ ¼Ó¼º¿¡ ¸Â´Â ÀÌÆåÆ®¸¦ È°¼ºÈ­
+        // í˜„ì¬ ë¬´ê¸°ì˜ ì†ì„±ì— ë§ëŠ” ì´í™íŠ¸ë¥¼ í™œì„±í™”
         if (currentWeapon != null)
         {
             switch (currentWeapon.weaponAttribute)
             {
                 case WeaponAttribute.None:
-                    attributeEffects[0].SetActive(true); // Ice ÀÌÆåÆ® È°¼ºÈ­
+                    attributeEffects[0].SetActive(true); // Ice ì´í™íŠ¸ í™œì„±í™”
                     break;
                 case WeaponAttribute.Blood:
-                    attributeEffects[1].SetActive(true); // Blood ÀÌÆåÆ® È°¼ºÈ­
+                    attributeEffects[1].SetActive(true); // Blood ì´í™íŠ¸ í™œì„±í™”
                     break;
                 case WeaponAttribute.Ice:
-                    attributeEffects[2].SetActive(true); // Ice ÀÌÆåÆ® È°¼ºÈ­
+                    attributeEffects[2].SetActive(true); // Ice ì´í™íŠ¸ í™œì„±í™”
                     break;
                 case WeaponAttribute.Iron:
-                    attributeEffects[3].SetActive(true); // Iron ÀÌÆåÆ® È°¼ºÈ­
+                    attributeEffects[3].SetActive(true); // Iron ì´í™íŠ¸ í™œì„±í™”
                     break;
                 case WeaponAttribute.Gear:
-                    attributeEffects[4].SetActive(true); // Gear ÀÌÆåÆ® È°¼ºÈ­
+                    attributeEffects[4].SetActive(true); // Gear ì´í™íŠ¸ í™œì„±í™”
                     break;
                 case WeaponAttribute.Gunpowder:
-                    attributeEffects[5].SetActive(true); // Gunpowder ÀÌÆåÆ® È°¼ºÈ­
+                    attributeEffects[5].SetActive(true); // Gunpowder ì´í™íŠ¸ í™œì„±í™”
                     break;
             }
         }
 
-        // ¹«±â ¼Ó¼º¿¡ µû¸¥ ÀÌÆåÆ® º¯È­ ¿ª½Ã ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
+        // ë¬´ê¸° ì†ì„±ì— ë”°ë¥¸ ì´í™íŠ¸ ë³€í™” ì—­ì‹œ ë„¤íŠ¸ì›Œí¬ ìƒì— ë™ê¸°í™”ê°€ í•„ìš”í•  ìˆ˜ ìˆìŒ
     }
 
-    // ÇöÀç ¹«±âÀÇ µ¥¹ÌÁö ¹İÈ¯
+    // í˜„ì¬ ë¬´ê¸°ì˜ ë°ë¯¸ì§€ ë°˜í™˜
     public int GetCurrentWeaponDamage()
     {
         return currentWeapon != null ? currentWeapon.damage : 0;
     }
 
-    // ÇöÀç ¹«±âÀÇ ¼Ó¼º ¹İÈ¯
+    // í˜„ì¬ ë¬´ê¸°ì˜ ì†ì„± ë°˜í™˜
     public WeaponAttribute GetCurrentWeaponAttribute()
     {
         return currentWeapon != null ? currentWeapon.weaponAttribute : WeaponAttribute.None;
+    }
+
+    // í˜„ì¬ ë¬´ê¸° ì¸ë±ìŠ¤ ë°˜í™˜
+    public int GetCurrentWeaponIndex()
+    {
+        return currentWeaponIndex;
     }
 }

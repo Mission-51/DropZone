@@ -1,13 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using Photon.Pun;
+using System.Linq;
 
-public class Chest : MonoBehaviour
+public class Chest : MonoBehaviourPunCallbacks, IPunObservable
 {
-    public List<ItemData> itemList;
-    public List<ItemData> items;
-
-    private static ChestSpawner m_instance;
+    public List<ItemData> items = new List<ItemData>();    
 
     [SerializeField]
     private Transform slotParent;
@@ -15,96 +15,131 @@ public class Chest : MonoBehaviour
     [SerializeField]
     private ChestSlot[] slots;
 
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        slots = slotParent.GetComponentsInChildren<ChestSlot>();
-    }
-#endif
+    private PhotonView photonView;
+    private Rigidbody rb;
+    ChestSpawner spawner;
 
     private void Awake()
     {
-        FreshSlot();
+        spawner = FindObjectOfType<ChestSpawner>();
+        photonView = GetComponent<PhotonView>();
+        slots = slotParent.GetComponentsInChildren<ChestSlot>();
+        rb = GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+        }
+        rb.isKinematic = true; // Î¨ºÎ¶¨ ÏãúÎÆ¨Î†àÏù¥ÏÖò ÎπÑÌôúÏÑ±Ìôî
+        rb.useGravity = false; // Ï§ëÎ†• ÎπÑÌôúÏÑ±Ìôî
     }
 
     private void Start()
     {
-        // µ∑
-        if (ChestSpawner.resources.money100 > 0)
+        if (photonView.IsMine)
         {
-            this.AddItem(itemList[0]);
-            ChestSpawner.resources.money100 -= 1;
+            InitializeItems();
         }
-        else if (ChestSpawner.resources.money200 > 0)
-        {
-            this.AddItem(itemList[1]);
-            ChestSpawner.resources.money200 -= 1;
-        }
-        else if (ChestSpawner.resources.money300 > 0)
-        {
-            this.AddItem(itemList[2]);
-            ChestSpawner.resources.money300 -= 1;
-        }
+    }
 
-        // ªÁøÎ æ∆¿Ã≈€
-        if (ChestSpawner.resources.taserGun > 0)
+    private void InitializeItems()
+    {
+        Debug.Log("Initializing items for chest");
+        while (items.Count < 3)
         {
-            this.AddItem(itemList[3]);
-            ChestSpawner.resources.taserGun -= 1;
-        }
-        else if (ChestSpawner.resources.grenade > 0)
-        {
-            this.AddItem(itemList[4]);
-            ChestSpawner.resources.grenade -= 1;
-        }
-        else if (ChestSpawner.resources.trap > 0)
-        {
-            this.AddItem(itemList[5]);
-            ChestSpawner.resources.trap -= 1;
-        }
-        else if (ChestSpawner.resources.glue > 0)
-        {
-            this.AddItem(itemList[6]);
-            ChestSpawner.resources.glue -= 1;
-        }
+            ItemData newItem = null;
+            if (items.Count == 0) newItem = ChestSpawner.GetNextMoney();
+            else if (items.Count == 1) newItem = ChestSpawner.GetNextUseItem();
+            else if (items.Count == 2) newItem = ChestSpawner.GetNextHealItem();
 
-        // »∏∫π æ∆¿Ã≈€
-        if (ChestSpawner.resources.bandage > 0)
-        {
-            this.AddItem(itemList[7]);
-            ChestSpawner.resources.bandage -= 1;
+            if (newItem != null)
+            {
+                items.Add(newItem);
+                Debug.Log($"Ï∂îÍ∞Ä ÏïÑÏù¥ÌÖú: {newItem.itemName} ");
+            }
+            else
+            {
+                Debug.LogWarning("Îçî Ï∂îÍ∞ÄÌï† ÏïÑÏù¥ÌÖú ÏùéÏùçÎîîÎã§");
+                break;
+            }
         }
-        else if (ChestSpawner.resources.firstAidKit > 0)
+        photonView.RPC("SyncItems", RpcTarget.All, items.Select(item => item.id).ToArray());
+    }
+
+    [PunRPC]
+    private void SyncItems(int[] itemIds)
+    {
+        items.Clear();
+        foreach (int id in itemIds)
         {
-            this.AddItem(itemList[8]);
-            ChestSpawner.resources.firstAidKit -= 1;
+            ItemData item = spawner.itemList.Find(i => i.id == id);
+            if (item != null)
+            {
+                items.Add(item);
+            }
         }
+        FreshSlot();
+        Debug.Log($"Ïó∞ÎèôÎêú ÏïÑÏù¥ÌÖú. Ï†ÑÏ≤¥ ÏïÑÏù¥ÌÖú Ïàò: {items.Count}");
     }
 
     public void FreshSlot()
     {
-        int i = 0;
-        for (; i < items.Count && i < slots.Length; i++)
+        for (int i = 0; i < slots.Length; i++)
         {
-            slots[i].item = items[i];
-        }
-        for (; i < slots.Length; i++)
-        {
-            slots[i].item = null;
+            slots[i].item = i < items.Count ? items[i] : null;
         }
     }
 
-    public void AddItem(ItemData _item)
+    [PunRPC]
+    public void RemoveItemRPC(int itemIndex)
     {
-        if (items.Count < slots.Length)
+        if (itemIndex >= 0 && itemIndex < items.Count)
         {
-            items.Add(_item);
+            Debug.Log($"[Ï≤¥Ïä§Ìä∏] ÏïÑÏù¥ÌÖú Ï†úÍ±∞ {itemIndex}");
+            items.RemoveAt(itemIndex);
             FreshSlot();
+        }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        MinigameManager.instance.canAttack = false;
+        Debug.Log("Chest: Pointer entered, canAttack set to false");
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        MinigameManager.instance.canAttack = true;
+        Debug.Log("Chest: Pointer exited, canAttack set to true");
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(items.Count);
+            foreach (var item in items)
+            {
+                stream.SendNext(item.id);
+            }
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
         }
         else
         {
-            print("ΩΩ∑‘¿Ã ∞°µÊ ¬˜ ¿÷Ω¿¥œ¥Ÿ.");
+            int itemCount = (int)stream.ReceiveNext();
+            items.Clear();
+            for (int i = 0; i < itemCount; i++)
+            {
+                int itemId = (int)stream.ReceiveNext();
+                ItemData item = spawner.itemList.Find(x => x.id == itemId);
+                if (item != null)
+                {
+                    items.Add(item);
+                }
+            }
+            transform.position = (Vector3)stream.ReceiveNext();
+            transform.rotation = (Quaternion)stream.ReceiveNext();
+            FreshSlot();
         }
-    }
+    }    
 }

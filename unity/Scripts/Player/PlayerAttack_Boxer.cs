@@ -1,87 +1,110 @@
-using System.Collections;
 using UnityEngine;
 using static PlayerStatus;
+using Photon.Pun;
+using System.Collections.Generic;
+using System.Collections;
 
-public class PlayerAttack_Boxer : MonoBehaviour, IAttack
+public class PlayerAttack_Boxer : MonoBehaviourPun, IAttack
 {
     private Animator anim;
     public WeaponManager weaponManager;
-    private PlayerMovement playerMovement; // PlayerMovement ÂüÁ¶
-    public GameObject attackCollider; // °ø°İ Äİ¶óÀÌ´õ (Hit Box)
+    private PlayerMovement playerMovement;
+    public GameObject attackCollider;
 
-    public int damage; // °ø°İÇÒ ¶§ ÁÙ µ¥¹ÌÁö(¹«±â¿¡¼­ °¡Á®¿Í¼­ Àû¿ë)        
+    public int damage;
     public float fireDelay;
     private bool isAttack;
     private bool isFireReady;
 
-    public float skillCoolDown = 7.0f; // ½ºÅ³ Äğ´Ù¿î
-    private float lastSkillTime = -100f; // ¸¶Áö¸· ½ºÅ³ »ç¿ë ½Ã°£À» ±â·Ï    
+    public float skillCoolDown = 7.0f;
+    private float lastSkillTime = -100f;
 
-    public PlayerStatus playerStatus; // ÇÃ·¹ÀÌ¾î »óÅÂ ÂüÁ¶ (½´ÆÛ¾Æ¸Ó Àû¿ëÀ» À§ÇØ)
-    public GameObject superArmorEffect; // ½´ÆÛ¾Æ¸Ó ÀÌÆåÆ®¸¦ À§ÇÑ GameObject
+    public PlayerStatus playerStatus;
+    public GameObject superArmorEffect;
+
+    private bool canAttack = true;
 
     void Awake()
     {
         anim = GetComponent<Animator>();
-        playerMovement = GetComponent<PlayerMovement>(); // PlayerMovement ÄÄÆ÷³ÍÆ® ÂüÁ¶
-        playerStatus = GetComponent<PlayerStatus>(); // PlayerStatus ÄÄÆ÷³ÍÆ® ÂüÁ¶
-        attackCollider.SetActive(false); // Ã³À½¿¡´Â ºñÈ°¼ºÈ­
-
-        // PhotonView°¡ ÇÊ¿ä: °ø°İ ¹× ½ºÅ³ »ç¿ë°ú °°Àº Áß¿äÇÑ µ¿ÀÛÀ» ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
+        playerMovement = GetComponent<PlayerMovement>();
+        playerStatus = GetComponent<PlayerStatus>();
+        attackCollider.SetActive(false);
     }
 
     void Update()
     {
-        fireDelay += Time.deltaTime;
-        isFireReady = 1.5f < fireDelay;
+        if (!photonView.IsMine) return;
 
-        // ½ºÅ³Àº ³×Æ®¿öÅ© µ¿±âÈ­°¡ ÇÊ¿äÇÏ¹Ç·Î PhotonView¿Í RPC¸¦ »ç¿ëÇÏ¿© ½ºÅ³ »ç¿ë ½Ã ÀÌ¸¦ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ ÀüÆÄÇØ¾ß ÇÔ
-        if (Input.GetMouseButtonDown(1) && Time.time >= lastSkillTime + skillCoolDown) // ¿ìÅ¬¸¯ ÀÔ·Â
+        if (playerMovement.isDash || !canAttack || playerStatus.currentStatus == PlayerStatus.StatusEffect.Dead)
         {
-            ActivateSuperArmor(); // ½´ÆÛ¾Æ¸Ó Àû¿ë
-            // ½´ÆÛ¾Æ¸Ó Àû¿ëµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿Í µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î RPC »ç¿ë ÇÊ¿ä
+            return; // ëŒ€ì‰¬ì¤‘ì´ê±°ë‚˜ canAttackì´ falseì´ê±°ë‚˜ í”Œë ˆì´ì–´ê°€ ì£½ì€ ìƒíƒœë©´ ê³µê²©í•˜ì§€ ì•ŠìŒ
         }
-    
+
+        fireDelay += Time.deltaTime;
+        isFireReady = fireDelay >= 1.5f; // fireDelayëŠ” 1.5ì´ˆê°€ ë˜ì–´ì•¼ ê³µê²© ê°€ëŠ¥
+
+        // ì¿¨íƒ€ì„ì´ ë‹¤ ëŒë©´ ìŠ¤í‚¬ ì‚¬ìš© ê°€ëŠ¥
+        if (Input.GetMouseButtonDown(1) && Time.time >= lastSkillTime + skillCoolDown)
+        {
+            ActivateSuperArmor();
+        }
     }
 
     public void GetAttackInput(bool fDown)
     {
-        if (fDown && isFireReady)
+        // ê³µê²© ê°€ëŠ¥í•œ ìƒíƒœì´ê³  ëŒ€ì‰¬ ì¤‘ì´ ì•„ë‹ ë•Œ ê³µê²© ê°€ëŠ¥
+        if (fDown && isFireReady && canAttack && !playerMovement.isDash)
         {
-            StartAttack();
-            // °ø°İ µ¿ÀÛÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡µµ Àü´ŞµÇ¾î¾ß ÇÏ¹Ç·Î PhotonView¸¦ »ç¿ëÇØ µ¿±âÈ­ÇØ¾ß ÇÔ
+            playerMovement.TurnTowardsMouse();
+
+            // íšŒì „í•œ í›„ ê³µê²© ë°©í–¥ ì–»ê¸°
+            Vector3 shootDirection = transform.forward;
+
+            photonView.RPC("StartAttack", RpcTarget.All, shootDirection);
         }
     }
 
-    public void StartAttack()
+    // ê³µê²© ê°€ëŠ¥ ì—¬ë¶€ ë™ê¸°í™”
+    [PunRPC]
+    public void UpdateCanAttack(bool value)
     {
+        canAttack = value;
+    }
+
+    [PunRPC]
+    public void StartAttack(Vector3 shootDirection)
+    {
+        if (!photonView.IsMine) return;
+
+        // íšŒì „ ë™ê¸°í™”: ì „ë‹¬ë°›ì€ shootDirectionìœ¼ë¡œ íšŒì „
+        transform.rotation = Quaternion.LookRotation(shootDirection);
+
         isAttack = true;
-
-        // ÇöÀç ÀåÂøµÈ ¹«±âÀÇ µ¥¹ÌÁö °¡Á®¿À±â
         damage = weaponManager.GetCurrentWeaponDamage();
-
-        playerMovement.SetAttackState(true); // °ø°İ »óÅÂ Àü´Ş
-        playerMovement.TurnTowardsMouse(); // °ø°İ ½ÃÀÛ ½Ã ¸¶¿ì½º ¹æÇâÀ¸·Î È¸Àü        
+        playerMovement.SetAttackState(true);
+        
         anim.SetTrigger("doAttack");
         fireDelay = 0;
 
         StartCoroutine(PerformMultiAttack());
-        Invoke("EndAttack", 1.0f); // 1ÃÊ ÈÄ °ø°İ Á¾·á
+        Invoke("EndAttack", 1.0f);
     }
 
     private IEnumerator PerformMultiAttack()
     {
-        for (int i = 0; i < 3; i++) // 3 ÄŞº¸ ¾îÅÃ
+        for (int i = 0; i < 3; i++)
         {
-            ActivateColliderAndParticle();
-            yield return new WaitForSeconds(0.33f); // °ø°İ °£°İ
+            photonView.RPC("ActivateColliderAndParticle", RpcTarget.All);            
+            yield return new WaitForSeconds(0.33f);
         }
     }
 
+    [PunRPC]
     private void ActivateColliderAndParticle()
     {
         attackCollider.SetActive(true);
-        Invoke("DeactivateCollider", 0.33f); // 0.3ÃÊ ÈÄ Äİ¶óÀÌ´õ ºñÈ°¼ºÈ­
+        Invoke("DeactivateCollider", 0.33f);
     }
 
     private void DeactivateCollider()
@@ -92,103 +115,82 @@ public class PlayerAttack_Boxer : MonoBehaviour, IAttack
     private void EndAttack()
     {
         isAttack = false;
-        playerMovement.SetAttackState(false); // °ø°İ »óÅÂ Àü´Ş
-
-        // °ø°İ Á¾·áµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î PhotonView¿Í RPC »ç¿ë ÇÊ¿ä
+        playerMovement.SetAttackState(false);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") || other.CompareTag("TestEnemy"))
         {
             PlayerStatus enemyStatus = other.GetComponent<PlayerStatus>();
             if (enemyStatus != null)
             {
-                enemyStatus.TakeDamage(damage); // »ó´ë ÇÃ·¹ÀÌ¾î¿¡°Ô µ¥¹ÌÁö¸¦ ÁÜ
-
-                // »óÅÂÀÌ»ó Àû¿ë (ex. ice ¼Ó¼ºÀÎ °æ¿ì ½½·Î¿ì »óÅÂ¸¦ ºÎ¿©)                                
+                photonView.RPC("DealDamage", RpcTarget.All, enemyStatus.photonView.ViewID, damage);
                 ApplyStatusEffectOnHit(enemyStatus);
 
-                // °ø°İ¿¡ µû¸¥ »óÅÂ º¯È­ ¿ª½Ã ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­°¡ ÇÊ¿äÇÏ¹Ç·Î PhotonView¿Í RPC »ç¿ë °í·Á
-
-                // ÇöÀç ¹«±âÀÇ ¼Ó¼ºÀÌ BloodÀÎ °æ¿ì Ã¼·Â È¸º¹
                 if (weaponManager.GetCurrentWeaponAttribute() == WeaponAttribute.Blood)
                 {
-                    int healthToRestore = Mathf.CeilToInt(damage * 0.2f); // µ¥¹ÌÁöÀÇ 20%¸¦ ¹İ¿Ã¸²ÇÏ¿© °è»ê
-                    playerStatus.RestoreHealth(healthToRestore); // ¿øÇÏ´Â ¸¸Å­ÀÇ È¸º¹·® ¼³Á¤
-                    Debug.Log($"Ã¼·ÂÀÌ {healthToRestore} È¸º¹µÇ¾ú½À´Ï´Ù.");
-                    // Ã¼·Â È¸º¹µµ ³×Æ®¿öÅ© µ¿±âÈ­°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
+                    int healthToRestore = Mathf.CeilToInt(damage * 0.2f);
+                    playerStatus.RestoreHealth(healthToRestore);
                 }
-
             }
         }
     }
 
-    // »óÅÂÀÌ»óÀ» Àû¿ëÇÏ´Â ÇÔ¼ö
-    private void ApplyStatusEffectOnHit(PlayerStatus enemyStatus)
+    [PunRPC]
+    private void DealDamage(int enemyViewID, int damageAmount)
     {
-        // ÇöÀç ÀåÂøµÈ ¹«±âÀÇ ¼Ó¼º °¡Á®¿À±â
-        WeaponAttribute currentWeaponAttribute = weaponManager.GetCurrentWeaponAttribute();
-
-        // Ice ¼Ó¼ºÀÎ °æ¿ì »ó´ë¹æ¿¡°Ô Slow2 »óÅÂ¸¦ ºÎ¿©
-        if (currentWeaponAttribute == WeaponAttribute.Ice)
+        PhotonView enemyPhotonView = PhotonView.Find(enemyViewID);
+        PlayerStatus enemyStatus = enemyPhotonView.GetComponent<PlayerStatus>();
+        if (enemyStatus != null)
         {
-            enemyStatus.ApplyStatusEffect(StatusEffect.Slow2);
-            Debug.Log("Applied Slow2 effect to the enemy.");
-
-            // »ó´ë¹æ¿¡°Ô »óÅÂÀÌ»óÀ» ºÎ¿©ÇÏ´Â µ¿ÀÛ ¿ª½Ã ³×Æ®¿öÅ© µ¿±âÈ­°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
+            enemyStatus.TakeDamage(damageAmount);
         }
     }
 
-    // ½´ÆÛ¾Æ¸Ó¸¦ È°¼ºÈ­ÇÏ´Â ÇÔ¼ö (5ÃÊ°£ Àû¿ë)
+    private void ApplyStatusEffectOnHit(PlayerStatus enemyStatus)
+    {
+        WeaponAttribute currentWeaponAttribute = weaponManager.GetCurrentWeaponAttribute();
+
+        if (currentWeaponAttribute == WeaponAttribute.Ice)
+        {
+            enemyStatus.ApplyStatusEffect(StatusEffect.Slow2);
+        }
+    }
+
     private void ActivateSuperArmor()
     {
         if (playerStatus.currentStatus != StatusEffect.SuperArmor)
         {
-            playerStatus.ApplyStatusEffect(StatusEffect.SuperArmor); // ½´ÆÛ¾Æ¸Ó »óÅÂ Àû¿ë
-            Debug.Log("SuperArmor activated for 5 seconds");
-
-            // ½´ÆÛ¾Æ¸Ó »óÅÂ º¯°æÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î RPC·Î Ã³¸® ÇÊ¿ä
-
-            // ½´ÆÛ¾Æ¸Ó ÀÌÆåÆ®¸¦ È°¼ºÈ­
-            if (superArmorEffect != null)
-            {
-                superArmorEffect.SetActive(true); // ÀÌÆåÆ® È°¼ºÈ­
-            }
-
-            StartCoroutine(DeactivateSuperArmorAfterDelay(5.0f)); // 5ÃÊ ÈÄ ½´ÆÛ¾Æ¸Ó ÇØÁ¦
-
-            // ½ºÅ³ »ç¿ë ½Ã°£À» ±â·ÏÇØ Äğ´Ù¿îÀ» Àû¿ë
-            lastSkillTime = Time.time; // ½ºÅ³ »ç¿ë ½Ã°£À» ±â·Ï
+            photonView.RPC("ActivateSuperArmorRPC", RpcTarget.All);
         }
     }
 
+    [PunRPC]
+    private void ActivateSuperArmorRPC()
+    {
+        playerStatus.ApplyStatusEffect(StatusEffect.SuperArmor);
+        if (superArmorEffect != null)
+        {
+            superArmorEffect.SetActive(true);
+            playerMovement.moveSpeed += 1; // ìŠˆí¼ì•„ë¨¸ ì‚¬ìš© ì‹œ ì´ë™ ì†ë„ ì¦ê°€
+        }
 
-    // 5ÃÊ ÈÄ ½´ÆÛ¾Æ¸Ó¸¦ ºñÈ°¼ºÈ­ÇÏ´Â ÄÚ·çÆ¾
+        StartCoroutine(DeactivateSuperArmorAfterDelay(5.0f));
+        lastSkillTime = Time.time;
+    }
+
     private IEnumerator DeactivateSuperArmorAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        playerStatus.RemoveStatusEffect(); // »óÅÂÀÌ»ó ÇØÁ¦ (½´ÆÛ¾Æ¸Ó ÇØÁ¦)
-
-        // ½´ÆÛ¾Æ¸Ó ÇØÁ¦µµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î RPC·Î Ã³¸® ÇÊ¿ä
-
-        // ½´ÆÛ¾Æ¸Ó ÀÌÆåÆ®¸¦ ºñÈ°¼ºÈ­
+        playerStatus.RemoveStatusEffect();
+        playerMovement.moveSpeed = playerMovement.defaultSpeed; // ìŠˆí¼ì•„ë¨¸ í•´ì œ ì‹œ ì´ë™ ì†ë„ ì›ë³µ
         if (superArmorEffect != null)
         {
-            superArmorEffect.SetActive(false); // ÀÌÆåÆ® ºñÈ°¼ºÈ­
+            superArmorEffect.SetActive(false);
         }
-
-        Debug.Log("SuperArmor deactivated after 5 seconds");
     }
 
-    public void ExecuteEvent()
-    {
-        // °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç¿¡¼­ Æ¯Á¤ Å¸ÀÌ¹Ö¿¡ ÀÌº¥Æ®¸¦ ½ÇÇàÇÏ°í ½ÍÀ» ¶§
-        Debug.Log("Attack animation event triggered!");
-        // ÇÊ¿äÇÑ ·ÎÁ÷ Ãß°¡ (¿¹: µ¥¹ÌÁö Àû¿ë µî)
-    }
-
-    // IAttack ÀÎÅÍÆäÀÌ½º ±¸Çö
     public float GetSkillCooldown()
     {
         return skillCoolDown;
