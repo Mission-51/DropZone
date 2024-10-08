@@ -37,27 +37,21 @@ public class UserRankServiceImpl implements UserRankService {
     }
 
     private List<UserRankDTO> getPageableRankings(Pageable pageable) {
-        Page<UserStatisticsEntity> rankingPage = userRankRepository.findAllRankings(pageable);
+        // 1. 전체 유저 데이터를 점수로 정렬하여 가져옴
+        List<UserStatisticsEntity> allRankings = userRankRepository.findAllByOrderByRankingPointsDescTotalWinsDesc();
 
-        // 로그 출력을 통한 디버깅
-        System.out.println("UserRankServiceImpl: 요청된 페이지 = " + pageable.getPageNumber());
-
-        // 이전 유저의 점수와 비교해 같은 점수인 경우 같은 순위로 표시
-        List<UserStatisticsEntity> content = rankingPage.getContent();
         List<UserRankDTO> result = new ArrayList<>();
+        int currentRank = 1;
+        int lastRank = 1;
+        int lastRankingPoints = allRankings.get(0).getRankingPoints(); // 첫 번째 유저의 랭킹 점수 저장
 
-        // 첫 번째 페이지에서 1등부터 시작하고, 그 이후에는 이전 페이지의 마지막 등수를 유지
-        int startRank = pageable.getPageNumber() * pageable.getPageSize() + 1; // 페이지에 따른 시작 순위 계산
-        int currentRank = startRank; // 현재 페이지의 첫 번째 순위
-        int lastRank = currentRank; // 마지막 유저의 등수 기록
-        int lastRankingPoints = content.isEmpty() ? -1 : content.get(0).getRankingPoints(); // 첫 번째 유저의 랭킹 점수 저장
+        // 2. 전체 유저의 순위를 계산
+        for (int i = 0; i < allRankings.size(); i++) {
+            UserStatisticsEntity user = allRankings.get(i);
 
-        for (int i = 0; i < content.size(); i++) {
-            UserStatisticsEntity user = content.get(i);
-
-            // 현재 유저와 이전 유저의 점수가 같으면 같은 순위로 표시 (같은 등수 유지)
+            // 현재 유저와 이전 유저의 점수가 같으면 같은 순위 유지
             if (user.getRankingPoints() != lastRankingPoints) {
-                currentRank = lastRank + 1; // 점수가 다르면 순위를 증가시킴
+                currentRank = i + 1; // 새로운 점수가 나타날 때만 순위 증가
             }
 
             result.add(new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(), currentRank));
@@ -66,8 +60,13 @@ public class UserRankServiceImpl implements UserRankService {
             lastRank = currentRank; // 마지막 등수 업데이트
         }
 
-        return result;
+        // 3. 해당 페이지의 데이터를 반환 (페이지 요청에 맞게 잘라서 반환)
+        int start = pageable.getPageNumber() * pageable.getPageSize();
+        int end = Math.min(start + pageable.getPageSize(), result.size());
+
+        return result.subList(start, end); // 요청한 페이지의 데이터를 반환
     }
+
 
 
 

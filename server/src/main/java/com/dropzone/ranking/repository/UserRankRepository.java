@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface UserRankRepository extends JpaRepository<UserStatisticsEntity, Integer> {
 
@@ -21,4 +23,5 @@ public interface UserRankRepository extends JpaRepository<UserStatisticsEntity, 
     @Query("SELECT u FROM UserStatisticsEntity u WHERE u.userId = :userId")
     UserStatisticsEntity findUserStatisticsByUserId(int userId);
 
+    List<UserStatisticsEntity> findAllByOrderByRankingPointsDescTotalWinsDesc();
 }
