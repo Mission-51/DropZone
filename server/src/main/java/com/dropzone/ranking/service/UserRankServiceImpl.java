@@ -50,12 +50,12 @@ public class UserRankServiceImpl implements UserRankService {
         int startRank = pageable.getPageNumber() * pageable.getPageSize() + 1; // 페이지에 따른 시작 순위 계산
         int currentRank = startRank; // 현재 페이지의 첫 번째 순위
         int lastRank = currentRank; // 마지막 유저의 등수 기록
-        int lastRankingPoints = content.get(0).getRankingPoints(); // 첫 번째 유저의 랭킹 점수 저장
+        int lastRankingPoints = content.isEmpty() ? -1 : content.get(0).getRankingPoints(); // 첫 번째 유저의 랭킹 점수 저장
 
         for (int i = 0; i < content.size(); i++) {
             UserStatisticsEntity user = content.get(i);
 
-            // 현재 유저와 이전 유저의 점수가 같으면 같은 순위로 표시
+            // 현재 유저와 이전 유저의 점수가 같으면 같은 순위로 표시 (같은 등수 유지)
             if (user.getRankingPoints() != lastRankingPoints) {
                 currentRank = lastRank + 1; // 점수가 다르면 순위를 증가시킴
             }
@@ -68,6 +68,7 @@ public class UserRankServiceImpl implements UserRankService {
 
         return result;
     }
+
 
 
     @Override
