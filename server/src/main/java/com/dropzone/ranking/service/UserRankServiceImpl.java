@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,13 +39,32 @@ public class UserRankServiceImpl implements UserRankService {
     private List<UserRankDTO> getPageableRankings(Pageable pageable) {
         Page<UserStatisticsEntity> rankingPage = userRankRepository.findAllRankings(pageable);
 
-        return IntStream.range(0, rankingPage.getContent().size())
-                .mapToObj(i -> {
-                    UserStatisticsEntity user = rankingPage.getContent().get(i);
-                    return new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(),
-                            pageable.getPageNumber() * pageable.getPageSize() + i + 1);
-                })
-                .collect(Collectors.toList());
+        // 로그 출력을 통한 디버깅
+        System.out.println("UserRankServiceImpl: 요청된 페이지 = " + pageable.getPageNumber());
+
+        // 이전 유저의 점수와 비교해 같은 점수인 경우 같은 순위로 표시
+        List<UserStatisticsEntity> content = rankingPage.getContent();
+        List<UserRankDTO> result = new ArrayList<>();
+
+        int currentRank = pageable.getPageNumber() * pageable.getPageSize() + 1; // 현재 등수
+        int lastRank = currentRank; // 마지막 유저의 등수 기록
+        int lastRankingPoints = content.isEmpty() ? -1 : content.get(0).getRankingPoints(); // 첫 번째 유저의 랭킹 점수 저장
+
+        for (int i = 0; i < content.size(); i++) {
+            UserStatisticsEntity user = content.get(i);
+
+            // 현재 유저와 이전 유저의 점수가 같으면 같은 순위로 표시
+            if (user.getRankingPoints() != lastRankingPoints) {
+                currentRank = lastRank + 1;
+            }
+
+            result.add(new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(), currentRank));
+
+            lastRankingPoints = user.getRankingPoints(); // 마지막 점수 업데이트
+            lastRank = currentRank; // 마지막 등수 업데이트
+        }
+
+        return result;
     }
 
     @Override
