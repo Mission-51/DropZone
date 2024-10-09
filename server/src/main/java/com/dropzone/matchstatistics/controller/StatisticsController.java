@@ -83,9 +83,9 @@ public class StatisticsController {
                             schema = @Schema(
                                     example = "[{\"userRecords\": " +
                                             "[" +
-                                            "{\"userId\": 1, \"character_id\": 1, \"match_rank\": 1, \"match_dps\": 250, \"match_kills\": 1, \"match_playtime\": \"00:07:31\"}, " +
-                                            "{\"userId\": 2, \"character_id\": 1, \"match_rank\": 2, \"match_dps\": 126, \"match_kills\": 1, \"match_playtime\": \"00:05:29\"}, " +
-                                            "{\"userId\": 3, \"character_id\": 2, \"match_rank\": 3, \"match_dps\": 56, \"match_kills\": 0, \"match_playtime\": \"00:03:21\"}" +
+                                            "{\"userId\": 1, \"character_id\": 1, \"match_rank\": 1, \"match_dps\": 250, \"match_kills\": 1, \"match_playtime\": 120}, " +
+                                            "{\"userId\": 2, \"character_id\": 1, \"match_rank\": 2, \"match_dps\": 126, \"match_kills\": 1, \"match_playtime\": 130}, " +
+                                            "{\"userId\": 3, \"character_id\": 2, \"match_rank\": 3, \"match_dps\": 56, \"match_kills\": 0, \"match_playtime\": 1300}" +
                                             "]}]"
                             )
                     )
