@@ -1,9 +1,7 @@
 package com.dropzone.matchstatistics.controller;
 
 
-import com.dropzone.matchstatistics.dto.MatchAllUserDTO;
-import com.dropzone.matchstatistics.dto.UserAllMatchDTO;
-import com.dropzone.matchstatistics.dto.UserMatchDTO;
+import com.dropzone.matchstatistics.dto.*;
 import com.dropzone.matchstatistics.service.UserMatchStatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,8 +33,8 @@ public class StatisticsController {
             @Parameter(description = "매치 ID", required = true, example = "100") @PathVariable("matchId") int matchId) {
         log.info("유저 ID {}의 매치 ID {} 기록 조회 요청", userId, matchId);
         try {
-            UserMatchDTO userMatchDTO = userMatchStatisticsService.getUserMatchStatistics(userId, matchId);
-            return ResponseEntity.ok(userMatchDTO);
+            UserMatchResponseDTO userMatchResponseDTO = userMatchStatisticsService.getUserMatchStatistics(userId, matchId);
+            return ResponseEntity.ok(userMatchResponseDTO);
         } catch (Exception e) {
             log.error("유저 ID {}의 매치 ID {} 기록 조회 중 오류 발생", userId, matchId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("매치 기록 조회 중 서버 오류 발생");
@@ -92,7 +90,7 @@ public class StatisticsController {
                             )
                     )
             )
-            @RequestBody List<MatchAllUserDTO> matchRecords) {
+            @RequestBody List<MatchAllUserResponseDTO> matchRecords) {
         try {
             userMatchStatisticsService.saveMatchRecords(matchRecords);
             return ResponseEntity.ok("매치 기록 저장 성공");

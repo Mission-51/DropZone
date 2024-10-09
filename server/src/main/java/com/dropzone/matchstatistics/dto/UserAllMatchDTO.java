@@ -9,5 +9,5 @@ import java.util.List;
 @AllArgsConstructor
 public class UserAllMatchDTO {
     private int userId;  // 사용자 ID
-    private List<UserMatchDTO> matches;  // 여러 매치 기록 리스트
+    private List<UserMatchResponseDTO> matches;  // 여러 매치 기록 리스트
 }

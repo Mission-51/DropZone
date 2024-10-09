@@ -9,8 +9,9 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class MatchAllUserDTO {
+
     @ApiModelProperty(hidden = true)
     private int matchId;  // 매치 ID
 
-    private List<UserMatchDTO> userRecords;  // 매치에 참여한 유저들의 기록 리스트
+    private List<UserMatchResponseDTO> userRecords;  // 매치에 참여한 유저들의 기록 리스트
 }
