@@ -1,26 +1,29 @@
 using System.Collections;
 using UnityEngine;
 using static PlayerStatus;
+using Photon.Pun;
 
-public class PlayerAttack_Punk : MonoBehaviour, IAttack
+public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
 {
     private Animator anim;
     public WeaponManager weaponManager;
     private PlayerMovement playerMovement;
-    public GameObject attackCollider; // °ø°İ Äİ¶óÀÌ´õ (È÷Æ®¹Ú½º)
-    public GameObject skillCollider; // ½ºÅ³ Äİ¶óÀÌ´õ (È÷Æ®¹Ú½º)
+    public GameObject attackCollider; // ê³µê²© ì½œë¼ì´ë” (íˆíŠ¸ë°•ìŠ¤)
+    public GameObject skillCollider; // ìŠ¤í‚¬ ì½œë¼ì´ë” (íˆíŠ¸ë°•ìŠ¤)
 
-    public int damage; // °ø°İÇÒ ¶§ ÁÙ µ¥¹ÌÁö(¹«±â¿¡¼­ °¡Á®¿Í¼­ Àû¿ë) 
+    public int damage; // ê³µê²©í•  ë•Œ ì¤„ ë°ë¯¸ì§€(ë¬´ê¸°ì—ì„œ ê°€ì ¸ì™€ì„œ ì ìš©) 
     public float fireDelay;
     private bool isAttack;
     private bool isFireReady;
 
-    public float skillCoolDown = 5.0f; // ½ºÅ³ Äğ´Ù¿î
-    private float lastSkillTime = -100f; // ¸¶Áö¸· ½ºÅ³ »ç¿ë ½Ã°£ ±â·Ï
+    public float skillCoolDown = 5.0f; // ìŠ¤í‚¬ ì¿¨ë‹¤ìš´
+    private float lastSkillTime = -100f; // ë§ˆì§€ë§‰ ìŠ¤í‚¬ ì‚¬ìš© ì‹œê°„ ê¸°ë¡
 
-    public float knockbackForce = 10.0f; // ³Ë¹éÀÇ Èû
+    public float knockbackForce = 5.0f; // ë„‰ë°±ì˜ í˜
 
     public PlayerStatus playerStatus;
+
+    private bool canAttack = true;
 
     void Awake()
     {
@@ -30,60 +33,90 @@ public class PlayerAttack_Punk : MonoBehaviour, IAttack
         attackCollider.SetActive(false);
         skillCollider.SetActive(false);
 
-        // PhotonView°¡ ÇÊ¿ä: °ø°İ°ú ½ºÅ³ »ç¿ë »óÅÂ¸¦ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
     }
 
     void Update()
     {
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
+        if (playerMovement.isDash || !canAttack || playerStatus.currentStatus == PlayerStatus.StatusEffect.Dead)
+        {
+            return; // canAttackì´ falseì´ê±°ë‚˜ í”Œë ˆì´ì–´ê°€ ì£½ì€ ìƒíƒœë©´ ê³µê²©í•˜ì§€ ì•ŠìŒ
+        }
+
         fireDelay += Time.deltaTime;
         isFireReady = 1.5f < fireDelay;
 
-        // ½ºÅ³ »ç¿ëÀº ³×Æ®¿öÅ© µ¿±âÈ­°¡ ÇÊ¿äÇÏ¹Ç·Î PhotonView¿Í RPC »ç¿ëÀÌ ÇÊ¿äÇÔ
+        
         if (Input.GetMouseButtonDown(1) && Time.time >= lastSkillTime + skillCoolDown)
         {
-            UseSkill(); // ½ºÅ³ »ç¿ë
+            playerMovement.TurnTowardsMouse(); // ê³µê²© ì‹œì‘ ì‹œ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
+
+            // íšŒì „í•œ í›„ ê³µê²© ë°©í–¥ ì–»ê¸°
+            Vector3 shootDirection = transform.forward;
+
+            photonView.RPC("UseSkill", RpcTarget.All, shootDirection);
+            
         }
     }
 
     public void GetAttackInput(bool fDown)
     {
-        if (fDown && isFireReady)
+        if (fDown && isFireReady && canAttack && !playerMovement.isDash)
         {
-            StartAttack();
-            // °ø°İ µ¿ÀÛÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î RPC »ç¿ë ÇÊ¿ä
+            playerMovement.TurnTowardsMouse(); // ê³µê²© ì‹œì‘ ì‹œ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
+
+            // íšŒì „í•œ í›„ ê³µê²© ë°©í–¥ ì–»ê¸°
+            Vector3 shootDirection = transform.forward;
+
+            photonView.RPC("StartAttack", RpcTarget.All, shootDirection);
         }
     }
 
-    public void StartAttack()
+    // ê³µê²© ê°€ëŠ¥ ì—¬ë¶€ ë™ê¸°í™”
+    [PunRPC]
+    public void UpdateCanAttack(bool value)
     {
-        // ÇöÀç ÀåÂøµÈ ¹«±âÀÇ µ¥¹ÌÁö °¡Á®¿À±â
+        canAttack = value;
+    }
+
+    [PunRPC]
+    public void StartAttack(Vector3 shootDirection)
+    {
+        // íšŒì „ ë™ê¸°í™”: ì „ë‹¬ë°›ì€ shootDirectionìœ¼ë¡œ íšŒì „
+        transform.rotation = Quaternion.LookRotation(shootDirection);
+
+        // í˜„ì¬ ì¥ì°©ëœ ë¬´ê¸°ì˜ ë°ë¯¸ì§€ ê°€ì ¸ì˜¤ê¸°
         damage = weaponManager.GetCurrentWeaponDamage();
 
         isAttack = true;
         playerMovement.SetAttackState(true);
-        playerMovement.TurnTowardsMouse();
         anim.SetTrigger("doAttack");
         fireDelay = 0;
 
         StartCoroutine(PerformMultiAttack());
         Invoke("EndAttack", 1.0f);
 
-        // °ø°İ »óÅÂµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î RPC ÇÊ¿ä
+        // ê³µê²© ìƒíƒœë„ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì— ë™ê¸°í™”í•´ì•¼ í•˜ë¯€ë¡œ RPC í•„ìš”
     }
 
     private IEnumerator PerformMultiAttack()
     {
-        for (int i = 0; i < 2; i++) // 2 ÄŞº¸ ¾îÅÃ
+        for (int i = 0; i < 2; i++) // 2 ì½¤ë³´ ì–´íƒ
         {
-            ActivateAttackCollider();
-            yield return new WaitForSeconds(0.5f); // °ø°İ °£°İ
+            photonView.RPC("ActivateAttackCollider", RpcTarget.All);            
+            yield return new WaitForSeconds(0.5f); // ê³µê²© ê°„ê²©
         }
     }
 
+    [PunRPC]
     private void ActivateAttackCollider()
     {
         attackCollider.SetActive(true);
-        Invoke("DeactivateAttackCollider", 0.5f); // ÀÏÁ¤ ½Ã°£ ÀÌÈÄ Äİ¶óÀÌ´õ ºñÈ°¼ºÈ­
+        Invoke("DeactivateAttackCollider", 0.5f); // ì¼ì • ì‹œê°„ ì´í›„ ì½œë¼ì´ë” ë¹„í™œì„±í™”
     }
 
     private void DeactivateAttackCollider()
@@ -94,30 +127,28 @@ public class PlayerAttack_Punk : MonoBehaviour, IAttack
     private void EndAttack()
     {
         isAttack = false;
-        playerMovement.SetAttackState(false);
-
-        // °ø°İ Á¾·áµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
+        playerMovement.SetAttackState(false);        
     }
 
-    // °ø°İ ¹× ½ºÅ³ ¸ğµÎ Ã³¸®ÇÏ´Â OnTriggerEnter
+    // ê³µê²© ë° ìŠ¤í‚¬ ëª¨ë‘ ì²˜ë¦¬í•˜ëŠ” OnTriggerEnter
     private void OnTriggerEnter(Collider other)
     {
-        // °ø°İ Äİ¶óÀÌ´õ¿Í ½ºÅ³ Äİ¶óÀÌ´õ¸¦ ±¸ºĞ
-        if (other.CompareTag("Player"))
+        // ê³µê²© ì½œë¼ì´ë”ì™€ ìŠ¤í‚¬ ì½œë¼ì´ë”ë¥¼ êµ¬ë¶„
+        if (other.CompareTag("Player") || other.CompareTag("TestEnemy"))
         {
-            // °ø°İ Äİ¶óÀÌ´õ¿¡ ¸Â¾ÒÀ» ¶§
+            // ê³µê²© ì½œë¼ì´ë”ì— ë§ì•˜ì„ ë•Œ
             if (attackCollider.activeSelf)
             {
                 HandleAttackCollision(other);
             }
 
-            // ½ºÅ³ Äİ¶óÀÌ´õ¿¡ ¸Â¾ÒÀ» ¶§
+            // ìŠ¤í‚¬ ì½œë¼ì´ë”ì— ë§ì•˜ì„ ë•Œ
             if (skillCollider.activeSelf)
             {
                 HandleSkillCollision(other);
             }
 
-            // Æ®¸®°Å Ãæµ¹ ¹× È¿°úµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î PhotonView¿Í RPC »ç¿ë °í·Á
+            // íŠ¸ë¦¬ê±° ì¶©ëŒ ë° íš¨ê³¼ë„ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì— ë™ê¸°í™”ë˜ì–´ì•¼ í•˜ë¯€ë¡œ PhotonViewì™€ RPC ì‚¬ìš© ê³ ë ¤
         }
     }
 
@@ -126,10 +157,10 @@ public class PlayerAttack_Punk : MonoBehaviour, IAttack
         PlayerStatus enemyStatus = other.GetComponent<PlayerStatus>();
         if (enemyStatus != null)
         {
-            // µ¥¹ÌÁö Àû¿ë
+            // ë°ë¯¸ì§€ ì ìš©
             enemyStatus.TakeDamage(damage);
 
-            // »óÅÂÀÌ»ó Àû¿ë
+            // ìƒíƒœì´ìƒ ì ìš©
             ApplyStatusEffectOnHit(enemyStatus);
         }
     }
@@ -141,28 +172,28 @@ public class PlayerAttack_Punk : MonoBehaviour, IAttack
 
         if (enemyRb != null && enemyStatus != null)
         {
-            // ³Ë¹é ¹æÇâ °è»ê
+            // ë„‰ë°± ë°©í–¥ ê³„ì‚°
             Vector3 knockbackDirection = (other.transform.position - transform.position).normalized;
-            knockbackDirection.y = 0f; // yÃàÀ» °íÁ¤ÇÏ¿© À§/¾Æ·¡ ¿òÁ÷ÀÓÀ» ¹æÁö
+            knockbackDirection.y = 0f; // yì¶•ì„ ê³ ì •í•˜ì—¬ ìœ„/ì•„ë˜ ì›€ì§ì„ì„ ë°©ì§€
 
-            // ÀûÀ» ¹Ğ¾î³¿ (³Ë¹é È¿°ú)
+            // ì ì„ ë°€ì–´ëƒ„ (ë„‰ë°± íš¨ê³¼)
             enemyRb.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
 
-            // »óÅÂÀÌ»óÀ» KnockbackÀ¸·Î ¼³Á¤
+            // ìƒíƒœì´ìƒì„ Knockbackìœ¼ë¡œ ì„¤ì •
             enemyStatus.ApplyStatusEffect(StatusEffect.Knockback);
 
-            // µ¥¹ÌÁö Àû¿ë (½ºÅ³µ¥¹ÌÁö = µ¥¹ÌÁö * 1.5)
+            // ë°ë¯¸ì§€ ì ìš© (ìŠ¤í‚¬ë°ë¯¸ì§€ = ë°ë¯¸ì§€ * 1.5)
             enemyStatus.TakeDamage(Mathf.RoundToInt(damage * 1.5f));
         }
     }
 
-    // »óÅÂÀÌ»óÀ» Àû¿ëÇÏ´Â ÇÔ¼ö
+    // ìƒíƒœì´ìƒì„ ì ìš©í•˜ëŠ” í•¨ìˆ˜
     private void ApplyStatusEffectOnHit(PlayerStatus enemyStatus)
     {
-        // ÇöÀç ÀåÂøµÈ ¹«±âÀÇ ¼Ó¼º °¡Á®¿À±â
+        // í˜„ì¬ ì¥ì°©ëœ ë¬´ê¸°ì˜ ì†ì„± ê°€ì ¸ì˜¤ê¸°
         WeaponAttribute currentWeaponAttribute = weaponManager.GetCurrentWeaponAttribute();
 
-        // Ice ¼Ó¼ºÀÎ °æ¿ì »ó´ë¹æ¿¡°Ô Slow2 »óÅÂ¸¦ ºÎ¿©
+        // Ice ì†ì„±ì¸ ê²½ìš° ìƒëŒ€ë°©ì—ê²Œ Slow2 ìƒíƒœë¥¼ ë¶€ì—¬
         if (currentWeaponAttribute == WeaponAttribute.Ice)
         {
             enemyStatus.ApplyStatusEffect(StatusEffect.Slow2);
@@ -170,21 +201,24 @@ public class PlayerAttack_Punk : MonoBehaviour, IAttack
         }
     }
 
-    // ½ºÅ³ »ç¿ë
-    private void UseSkill()
+    // ìŠ¤í‚¬ ì‚¬ìš©
+    [PunRPC]
+    private void UseSkill(Vector3 shootDirection)
     {
-        // ÇöÀç ÀåÂøµÈ ¹«±âÀÇ µ¥¹ÌÁö °¡Á®¿À±â
+        // íšŒì „ ë™ê¸°í™”: ì „ë‹¬ë°›ì€ shootDirectionìœ¼ë¡œ íšŒì „
+        transform.rotation = Quaternion.LookRotation(shootDirection);
+
+        // í˜„ì¬ ì¥ì°©ëœ ë¬´ê¸°ì˜ ë°ë¯¸ì§€ ê°€ì ¸ì˜¤ê¸°
         damage = weaponManager.GetCurrentWeaponDamage();
 
         lastSkillTime = Time.time;
-        playerMovement.SetAttackState(true);
-        playerMovement.TurnTowardsMouse();
+        playerMovement.SetAttackState(true);        
         anim.SetTrigger("doSkill");
 
 
-        // ½ºÅ³ Äİ¶óÀÌ´õ È°¼ºÈ­
+        // ìŠ¤í‚¬ ì½œë¼ì´ë” í™œì„±í™”
         Invoke("ActivateSkillCollider", 0.6f);
-        // ½ºÅ³ »ç¿ë ÈÄ ºñÈ°¼ºÈ­
+        // ìŠ¤í‚¬ ì‚¬ìš© í›„ ë¹„í™œì„±í™”
         Invoke("DeactivateSkillCollider", 0.8f);
 
         Invoke("EndAttack", 0.8f);
@@ -205,7 +239,7 @@ public class PlayerAttack_Punk : MonoBehaviour, IAttack
         Debug.Log("Attack animation event triggered!");
     }
 
-    // IAttack ÀÎÅÍÆäÀÌ½º ±¸Çö
+    // IAttack ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„
     public float GetSkillCooldown()
     {
         return skillCoolDown;

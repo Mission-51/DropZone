@@ -3,11 +3,13 @@ package com.dropzone.matchstatistics.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.sql.Time;
 
 @Getter
+@Builder
 @AllArgsConstructor
 public class UserMatchDTO {
 
@@ -30,5 +32,5 @@ public class UserMatchDTO {
     private int match_kills;
 
     @ApiModelProperty(value = "매치 플레이 시간")
-    private Time match_playtime;
+    private int match_playtime;
 }

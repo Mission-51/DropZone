@@ -1,119 +1,156 @@
 using System.Collections;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerAttack_Soldier : MonoBehaviour, IAttack
+public class PlayerAttack_Soldier : MonoBehaviourPun, IAttack
 {
     private Animator anim;
-    public GameObject bulletPrefab; // ¹ß»çÃ¼ ÇÁ¸®ÆÕ
-    public GameObject piercingBulletPrefab; // °üÅëÅº ÇÁ¸®ÆÕ
-    public Transform bulletPos; // ¹ß»ç À§Ä¡
-    public float bulletSpeed = 50f; // ¹ß»çÃ¼ ¼Óµµ
-    public float piercingBulletSpeed = 70f; // °üÅëÅº ¹ß»çÃ¼ ¼Óµµ
-    public float fireDelay = 1.5f; // °ø°İ °£°İ
+    public GameObject bulletPrefab; // ë°œì‚¬ì²´ í”„ë¦¬íŒ¹
+    public GameObject piercingBulletPrefab; // ê´€í†µíƒ„ í”„ë¦¬íŒ¹
+    public Transform bulletPos; // ë°œì‚¬ ìœ„ì¹˜
+    public float bulletSpeed = 50f; // ë°œì‚¬ì²´ ì†ë„
+    public float piercingBulletSpeed = 70f; // ê´€í†µíƒ„ ë°œì‚¬ì²´ ì†ë„
+    public float fireDelay = 1.5f; // ê³µê²© ê°„ê²©
     private bool isFireReady = true;
-    private bool isAttacking = false; // °ø°İ ÁßÀÎÁö °ü¸®ÇÏ´Â ÇÃ·¡±×
+    private bool isAttacking = false; // ê³µê²© ì¤‘ì¸ì§€ ê´€ë¦¬í•˜ëŠ” í”Œë˜ê·¸
 
-    public int maxAmmo = 20; // ÃÖ´ë Åº¾à ¼ö
-    public int currentAmmo; // ÇöÀç Åº¾à ¼ö
-    public float reloadTime = 2.0f; // ÀçÀåÀü ½Ã°£
-    private bool isReloading = false; // ÀçÀåÀü ¿©ºÎ
+    public int maxAmmo = 20; // ìµœëŒ€ íƒ„ì•½ ìˆ˜
+    public int currentAmmo;  // í˜„ì¬ íƒ„ì•½ ìˆ˜
+    public float reloadTime = 2.0f; // ì¬ì¥ì „ ì‹œê°„
+    private bool isReloading = false; // ì¬ì¥ì „ ì—¬ë¶€
 
-    public WeaponManager weaponManager; // weaponManager ÂüÁ¶
-    public PlayerMovement playerMovement; // PlayerMovement ÂüÁ¶
-    public float skillCoolDown = 5.0f; // ½ºÅ³ ÄğÅ¸ÀÓ
-    private float lastSkillTime = -100f; // ¸¶Áö¸· ½ºÅ³ »ç¿ë ½Ã°£À» ±â·Ï
+    public WeaponManager weaponManager; // weaponManager ì°¸ì¡°
+    public PlayerMovement playerMovement; // PlayerMovement ì°¸ì¡°
+    public float skillCoolDown = 5.0f; // ìŠ¤í‚¬ ì¿¨íƒ€ì„
+    private float lastSkillTime = -100f; // ë§ˆì§€ë§‰ ìŠ¤í‚¬ ì‚¬ìš© ì‹œê°„ì„ ê¸°ë¡
 
-    public GameObject fireEffect; // ¹ß»ç ÀÌÆåÆ® (È°¼ºÈ­/ºñÈ°¼ºÈ­ ÇÒ ÀÌÆåÆ®)
+    public GameObject fireEffect; // ë°œì‚¬ ì´í™íŠ¸ (í™œì„±í™”/ë¹„í™œì„±í™” í•  ì´í™íŠ¸)
+
+    public PlayerStatus playerStatus;
+
+    private bool canAttack = true;
 
     void Awake()
     {
         anim = GetComponent<Animator>();
-        playerMovement = GetComponent<PlayerMovement>(); // PlayerMovement ÂüÁ¶
-        currentAmmo = maxAmmo; // Åº¾à ÃÊ±âÈ­
+        playerMovement = GetComponent<PlayerMovement>(); // PlayerMovement ì°¸ì¡°
+        playerStatus = GetComponent<PlayerStatus>();
+        currentAmmo = maxAmmo; // íƒ„ì•½ ì´ˆê¸°í™”
 
-        // ¹ß»ç ÀÌÆåÆ®¸¦ ºñÈ°¼ºÈ­ÇÑ »óÅÂ·Î ½ÃÀÛ
+        // ë°œì‚¬ ì´í™íŠ¸ë¥¼ ë¹„í™œì„±í™”í•œ ìƒíƒœë¡œ ì‹œì‘
         if (fireEffect != null)
         {
-            fireEffect.SetActive(false); // ¹ß»ç ÀÌÆåÆ® ºñÈ°¼ºÈ­
+            fireEffect.SetActive(false); // ë°œì‚¬ ì´í™íŠ¸ ë¹„í™œì„±í™”
         }
-
-        // PhotonView°¡ ÇÊ¿ä: ¿ø°Å¸® °ø°İ(¹ß»çÃ¼) ¹× ½ºÅ³ µ¿ÀÛÀ» ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
+        
     }
 
     void Update()
     {
-        // °ø°İ ÄğÅ¸ÀÓ Ã³¸®
+        if (!photonView.IsMine)
+        {
+            return;
+        }
+
+        if (playerMovement.isDash || !canAttack || playerStatus.currentStatus == PlayerStatus.StatusEffect.Dead)
+        {
+            return; // canAttackì´ falseì´ê±°ë‚˜ í”Œë ˆì´ì–´ê°€ ì£½ì€ ìƒíƒœë©´ ê³µê²©í•˜ì§€ ì•ŠìŒ
+        }
+
+        // ê³µê²© ì¿¨íƒ€ì„ ì²˜ë¦¬
         fireDelay += Time.deltaTime;
         isFireReady = fireDelay >= 0.4f;
 
-        // ¼öµ¿ ÀçÀåÀü (RÅ° ÀÔ·Â ½Ã)
+        // ìˆ˜ë™ ì¬ì¥ì „ (Rí‚¤ ì…ë ¥ ì‹œ)
         if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo)
         {
             StartCoroutine(Reload());
             return;
         }
 
-        // ½ºÅ³ »ç¿ëÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿Í µ¿±âÈ­°¡ ÇÊ¿äÇÏ¹Ç·Î PhotonView¿Í RPC »ç¿ëÀÌ ÇÊ¿äÇÔ
+        // ìŠ¤í‚¬ ì‚¬ìš©ì€ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì™€ ë™ê¸°í™”ê°€ í•„ìš”í•˜ë¯€ë¡œ PhotonViewì™€ RPC ì‚¬ìš©ì´ í•„ìš”í•¨
         if (Input.GetMouseButtonDown(1) && Time.time >= lastSkillTime + skillCoolDown)
         {
-            UseSkill();
+            playerMovement.TurnTowardsMouse(); // ê³µê²© ì‹œì‘ ì‹œ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
+
+            // íšŒì „í•œ í›„ ë°œì‚¬ ë°©í–¥ ì–»ê¸°
+            Vector3 shootDirection = bulletPos.forward;
+
+            photonView.RPC("UseSkill", RpcTarget.All, shootDirection);
         }
     }
 
     public void GetAttackInput(bool fDown)
     {
-        if (fDown && isFireReady)
+        if (fDown && isFireReady && canAttack && !playerMovement.isDash)
         {
-            StartAttack();
-            // °ø°İ µ¿ÀÛµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î PhotonView¿Í RPC »ç¿ë ÇÊ¿ä
+            playerMovement.TurnTowardsMouse(); // ê³µê²© ì‹œì‘ ì‹œ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
+                                               
+        
+            // íšŒì „í•œ í›„ ë°œì‚¬ ë°©í–¥ ì–»ê¸°
+            Vector3 shootDirection = bulletPos.forward;
+
+            // PhotonViewë¥¼ í†µí•´ RPC í˜¸ì¶œ ì‹œ í˜„ì¬ íšŒì „ ë°©í–¥ë„ ì „ë‹¬
+            photonView.RPC("StartAttack", RpcTarget.All, shootDirection);
         }
     }
 
-    // ÀÏ¹İ °ø°İ
-    public void StartAttack()
+    // ê³µê²© ê°€ëŠ¥ ì—¬ë¶€ ë™ê¸°í™”
+    [PunRPC]
+    public void UpdateCanAttack(bool value)
     {
-        // ÀçÀåÀü ÁßÀÌ¶ó¸é °ø°İ ºÒ°¡
+        canAttack = value;
+    }
+
+    [PunRPC]
+    // ì¼ë°˜ ê³µê²©
+    public void StartAttack(Vector3 shootDirection)
+    {
+        // ì¬ì¥ì „ ì¤‘ì´ë¼ë©´ ê³µê²© ë¶ˆê°€
         if (isReloading)
         {
-            Debug.Log("ÀçÀåÀü Áß¿¡´Â °ø°İÇÒ ¼ö ¾ø½À´Ï´Ù.");
+            Debug.Log("ì¬ì¥ì „ ì¤‘ì—ëŠ” ê³µê²©í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
         if (currentAmmo <= 0)
         {
-            Debug.Log("Åº¾àÀÌ ºÎÁ·ÇÕ´Ï´Ù! ÀçÀåÀüÀÌ ÇÊ¿äÇÕ´Ï´Ù.");
+            Debug.Log("íƒ„ì•½ì´ ë¶€ì¡±í•©ë‹ˆë‹¤! ì¬ì¥ì „ì´ í•„ìš”í•©ë‹ˆë‹¤.");
             StartCoroutine(Reload());
             return;
         }
 
-        isFireReady = false; // °ø°İ Áß °ø°İÀ» ¸·À½
-        isAttacking = true; // °ø°İ Áß »óÅÂ ¼³Á¤
-        playerMovement.SetAttackState(true); // °ø°İ »óÅÂ Àü´Ş
-        playerMovement.TurnTowardsMouse(); // °ø°İ ½ÃÀÛ ½Ã ¸¶¿ì½º ¹æÇâÀ¸·Î È¸Àü  
-        anim.SetTrigger("doAttack"); // °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
-        fireDelay = 0; // ÄğÅ¸ÀÓ ÃÊ±âÈ­
+        // íšŒì „ ë™ê¸°í™”: ì „ë‹¬ë°›ì€ shootDirectionìœ¼ë¡œ íšŒì „
+        transform.rotation = Quaternion.LookRotation(shootDirection);
 
-        // °ø°İ ½Ã ¹ß»çÃ¼µµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î ¹ß»çÃ¼ »ı¼º ¹× ¹ß»ç µ¿ÀÛÀ» RPC·Î ÀüÆÄ
+        isFireReady = false; // ê³µê²© ì¤‘ ê³µê²©ì„ ë§‰ìŒ
+        isAttacking = true; // ê³µê²© ì¤‘ ìƒíƒœ ì„¤ì •
+        playerMovement.SetAttackState(true); // ê³µê²© ìƒíƒœ ì „ë‹¬
+        
+        anim.SetTrigger("doAttack"); // ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
+        fireDelay = 0; // ì¿¨íƒ€ì„ ì´ˆê¸°í™”
 
-        // ¹ß»ç ÀÌÆåÆ®¸¦ È°¼ºÈ­
+        // ê³µê²© ì‹œ ë°œì‚¬ì²´ë„ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì— ë™ê¸°í™”í•´ì•¼ í•˜ë¯€ë¡œ ë°œì‚¬ì²´ ìƒì„± ë° ë°œì‚¬ ë™ì‘ì„ RPCë¡œ ì „íŒŒ
+
+        // ë°œì‚¬ ì´í™íŠ¸ë¥¼ í™œì„±í™”
         if (fireEffect != null)
         {
-            fireEffect.transform.position = bulletPos.position; // ¹ß»ç À§Ä¡¿¡ ÀÌÆåÆ® ¹èÄ¡
-            fireEffect.SetActive(true); // ÀÌÆåÆ® È°¼ºÈ­
-            Invoke("DisableFireEffect", 0.2f); // 0.2ÃÊ ÈÄ ÀÌÆåÆ®¸¦ ºñÈ°¼ºÈ­
+            fireEffect.transform.position = bulletPos.position; // ë°œì‚¬ ìœ„ì¹˜ì— ì´í™íŠ¸ ë°°ì¹˜
+            fireEffect.SetActive(true); // ì´í™íŠ¸ í™œì„±í™”
+            Invoke("DisableFireEffect", 0.2f); // 0.2ì´ˆ í›„ ì´í™íŠ¸ë¥¼ ë¹„í™œì„±í™”
         }
 
-        // ¹ß»çÃ¼ »ı¼º
+        // ë°œì‚¬ì²´ ìƒì„±
         GameObject bullet = Instantiate(bulletPrefab, bulletPos.position, bulletPos.rotation * Quaternion.Euler(0, 180, 0));
         Bullet bulletScript = bullet.GetComponent<Bullet>();
 
         if (bulletScript != null)
         {
-            // ¹«±âÀÇ µ¥¹ÌÁö¸¦ ¹ß»çÃ¼¿¡ ¼³Á¤
+            // ë¬´ê¸°ì˜ ë°ë¯¸ì§€ë¥¼ ë°œì‚¬ì²´ì— ì„¤ì •
             bulletScript.damage = weaponManager.GetCurrentWeaponDamage();
-            bulletScript.shooter = gameObject; // ¹ß»çÀÚ¸¦ ÇöÀç °ÔÀÓ ¿ÀºêÁ§Æ®·Î ¼³Á¤
+            bulletScript.shooter = gameObject; // ë°œì‚¬ìë¥¼ í˜„ì¬ ê²Œì„ ì˜¤ë¸Œì íŠ¸ë¡œ ì„¤ì •
 
-            // ¹«±âÀÇ ¼Ó¼º¿¡ µû¶ó ¹ß»çÃ¼ÀÇ ¼Ó¼ºÀ» ¼³Á¤
+            // ë¬´ê¸°ì˜ ì†ì„±ì— ë”°ë¼ ë°œì‚¬ì²´ì˜ ì†ì„±ì„ ì„¤ì •
             WeaponAttribute currentAttribute = weaponManager.GetCurrentWeaponAttribute();
             switch (currentAttribute)
             {
@@ -132,48 +169,58 @@ public class PlayerAttack_Soldier : MonoBehaviour, IAttack
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.velocity = bulletPos.forward * bulletSpeed; // ¹ß»çÃ¼ ¼Óµµ Àû¿ë
+            rb.velocity = bulletPos.forward * bulletSpeed; // ë°œì‚¬ì²´ ì†ë„ ì ìš©
         }
 
-        currentAmmo--; // Åº¾à °¨¼Ò
-        Invoke("TryEndAttack", 1.3f); // 1.3ÃÊ ÈÄ °ø°İ Á¾·á ½Ãµµ
+        currentAmmo--; // íƒ„ì•½ ê°ì†Œ
+        Invoke("TryEndAttack", 1.3f);// 1.3ì´ˆ í›„ ê³µê²© ì¢…ë£Œ ì‹œë„
 
-        // ¹ß»çÃ¼¿Í °ü·ÃµÈ ¸ğµç µ¿ÀÛµµ ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­ ÇÊ¿ä
+        // ë°œì‚¬ì²´ì™€ ê´€ë ¨ëœ ëª¨ë“  ë™ì‘ë„ ë„¤íŠ¸ì›Œí¬ ìƒì— ë™ê¸°í™” í•„ìš”
     }
 
-    // ½ºÅ³ »ç¿ë (¿ìÅ¬¸¯À¸·Î »ç¿ë)
-    public void UseSkill()
+    // ìŠ¤í‚¬ ì‚¬ìš© (ìš°í´ë¦­ìœ¼ë¡œ ì‚¬ìš©)
+    [PunRPC]
+    public void UseSkill(Vector3 shootDirection)
     {
+        // ì¬ì¥ì „ ì¤‘ì´ë¼ë©´ ê³µê²© ë¶ˆê°€
+        if (isReloading)
+        {
+            Debug.Log("ì¬ì¥ì „ ì¤‘ì—ëŠ” ê³µê²©í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+            return;
+        }
+
         if (currentAmmo <= 0)
         {
-            Debug.Log("Åº¾àÀÌ ºÎÁ·ÇÕ´Ï´Ù! ÀçÀåÀüÀÌ ÇÊ¿äÇÕ´Ï´Ù.");
+            Debug.Log("íƒ„ì•½ì´ ë¶€ì¡±í•©ë‹ˆë‹¤! ì¬ì¥ì „ì´ í•„ìš”í•©ë‹ˆë‹¤.");
             StartCoroutine(Reload());
             return;
         }
 
-        lastSkillTime = Time.time; // ½ºÅ³ »ç¿ë ½Ã°£ ±â·Ï
-        playerMovement.SetAttackState(true); // °ø°İ »óÅÂ Àü´Ş
-        playerMovement.TurnTowardsMouse(); // °ø°İ ½ÃÀÛ ½Ã ¸¶¿ì½º ¹æÇâÀ¸·Î È¸Àü  
-        anim.SetTrigger("doSkill"); // ½ºÅ³ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
+        // íšŒì „ ë™ê¸°í™”: ì „ë‹¬ë°›ì€ shootDirectionìœ¼ë¡œ íšŒì „
+        transform.rotation = Quaternion.LookRotation(shootDirection);
 
-        // °üÅëÅº ¹ß»ç µ¿ÀÛÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡µµ µ¿±âÈ­°¡ ÇÊ¿äÇÏ¹Ç·Î RPC »ç¿ë °í·Á
+        lastSkillTime = Time.time; // ìŠ¤í‚¬ ì‚¬ìš© ì‹œê°„ ê¸°ë¡
+        playerMovement.SetAttackState(true); // ê³µê²© ìƒíƒœ ì „ë‹¬          
+        anim.SetTrigger("doAttack"); // ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
 
-        // ¹ß»ç ÀÌÆåÆ®¸¦ È°¼ºÈ­
+        // ê´€í†µíƒ„ ë°œì‚¬ ë™ì‘ì€ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì—ë„ ë™ê¸°í™”ê°€ í•„ìš”í•˜ë¯€ë¡œ RPC ì‚¬ìš© ê³ ë ¤
+
+        // ë°œì‚¬ ì´í™íŠ¸ë¥¼ í™œì„±í™”
         if (fireEffect != null)
         {
-            fireEffect.transform.position = bulletPos.position; // ¹ß»ç À§Ä¡¿¡ ÀÌÆåÆ® ¹èÄ¡
-            fireEffect.SetActive(true); // ÀÌÆåÆ® È°¼ºÈ­
-            Invoke("DisableFireEffect", 0.2f); // 0.2ÃÊ ÈÄ ÀÌÆåÆ®¸¦ ºñÈ°¼ºÈ­
+            fireEffect.transform.position = bulletPos.position;// ë°œì‚¬ ìœ„ì¹˜ì— ì´í™íŠ¸ ë°°ì¹˜
+            fireEffect.SetActive(true); // ì´í™íŠ¸ í™œì„±í™”
+            Invoke("DisableFireEffect", 0.2f); // 0.2ì´ˆ í›„ ì´í™íŠ¸ë¥¼ ë¹„í™œì„±í™”
         }
 
-        // °üÅëÅº ¹ß»ç
+        // ê´€í†µíƒ„ ë°œì‚¬
         GameObject piercingBullet = Instantiate(piercingBulletPrefab, bulletPos.position, bulletPos.rotation * Quaternion.Euler(0, 180, 0));
         Bullet bulletScript = piercingBullet.GetComponent<Bullet>();
 
         if (bulletScript != null)
         {
-            bulletScript.damage = weaponManager.GetCurrentWeaponDamage(); // ¹«±âÀÇ µ¥¹ÌÁö¸¦ °üÅëÅº¿¡ ¼³Á¤
-            bulletScript.shooter = gameObject; // ¹ß»çÀÚ¸¦ ÇöÀç °ÔÀÓ ¿ÀºêÁ§Æ®·Î ¼³Á¤
+            bulletScript.damage = weaponManager.GetCurrentWeaponDamage(); // ë¬´ê¸°ì˜ ë°ë¯¸ì§€ë¥¼ ê´€í†µíƒ„ì— ì„¤ì •
+            bulletScript.shooter = gameObject; // ë°œì‚¬ìë¥¼ í˜„ì¬ ê²Œì„ ì˜¤ë¸Œì íŠ¸ë¡œ ì„¤ì •
 
             WeaponAttribute currentAttribute = weaponManager.GetCurrentWeaponAttribute();
             switch (currentAttribute)
@@ -193,18 +240,18 @@ public class PlayerAttack_Soldier : MonoBehaviour, IAttack
         Rigidbody rb = piercingBullet.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.velocity = bulletPos.forward * piercingBulletSpeed; // °üÅëÅº ¼Óµµ Àû¿ë
+            rb.velocity = bulletPos.forward * piercingBulletSpeed; // ê´€í†µíƒ„ ì†ë„ ì ìš©
         }
 
-        currentAmmo--; // Åº¾à °¨¼Ò
-        Invoke("TryEndAttack", 1.3f); // 1.3ÃÊ ÈÄ °ø°İ Á¾·á ½Ãµµ
+        currentAmmo--; // íƒ„ì•½ ê°ì†Œ
+        Invoke("TryEndAttack", 1.3f); // 1.3ì´ˆ í›„ ê³µê²© ì¢…ë£Œ ì‹œë„
     }
 
     private void DisableFireEffect()
     {
         if (fireEffect != null)
         {
-            fireEffect.SetActive(false); // ÀÌÆåÆ® ºñÈ°¼ºÈ­
+            fireEffect.SetActive(false); // ì´í™íŠ¸ ë¹„í™œì„±í™”
         }
     }
 
@@ -212,51 +259,58 @@ public class PlayerAttack_Soldier : MonoBehaviour, IAttack
     {
         if (!isFireReady && isAttacking)
         {
-            // ¾ÆÁ÷ °ø°İÀÌ ³¡³ªÁö ¾Ê¾ÒÀ¸¹Ç·Î Á¾·áÇÏÁö ¾ÊÀ½
-            Debug.Log("°è¼Ó °ø°İ ÁßÀÔ´Ï´Ù. Á¾·áÇÏÁö ¾Ê½À´Ï´Ù.");
+            // ì•„ì§ ê³µê²©ì´ ëë‚˜ì§€ ì•Šì•˜ìœ¼ë¯€ë¡œ ì¢…ë£Œí•˜ì§€ ì•ŠìŒ
+            Debug.Log("ê³„ì† ê³µê²© ì¤‘ì…ë‹ˆë‹¤. ì¢…ë£Œí•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.");
         }
         else
         {
-            // °ø°İÀÌ ³¡³µ´Ù¸é °ø°İ Á¾·á
+            // ê³µê²©ì´ ëë‚¬ë‹¤ë©´ ê³µê²© ì¢…ë£Œ
             EndAttack();
         }
     }
 
-    // °ø°İ Á¾·á
+    // ê³µê²© ì¢…ë£Œ
     private void EndAttack()
     {
-        playerMovement.SetAttackState(false); // °ø°İ »óÅÂ Àü´Ş
-        isAttacking = false; // °ø°İ »óÅÂ Á¾·á
-        isFireReady = true; // °ø°İ °¡´É »óÅÂ·Î ÀüÈ¯
-        Debug.Log("°ø°İ Á¾·á");
+        playerMovement.SetAttackState(false); // ê³µê²© ìƒíƒœ ì „ë‹¬
+        isAttacking = false; // ê³µê²© ìƒíƒœ ì¢…ë£Œ
+        isFireReady = true; // ê³µê²© ê°€ëŠ¥ ìƒíƒœë¡œ ì „í™˜
+        Debug.Log("ê³µê²© ì¢…ë£Œ");
 
-        // °ø°İ Á¾·á »óÅÂµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ ÇÊ¿ä
+        // ê³µê²© ì¢…ë£Œ ìƒíƒœë„ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì— ë™ê¸°í™” í•„ìš”
     }
 
-    // ÀçÀåÀü ¸Ş¼­µå
+    // ì¬ì¥ì „ ë©”ì„œë“œ
     private IEnumerator Reload()
     {
-        if (isReloading) yield break;
+        if (isReloading) yield break;                   
 
-        isReloading = true;
-        anim.SetTrigger("doReload"); // ÀçÀåÀü ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà (ÇÊ¿ä¿¡ µû¶ó Ãß°¡)
+        // ëª¨ë“  í´ë¼ì´ì–¸íŠ¸ì— ì¬ì¥ì „ ì‹œì‘ì„ ì•Œë¦¼
+        photonView.RPC("StartReloadingRPC", RpcTarget.All);
 
-        Debug.Log("ÀçÀåÀü Áß...");
-        yield return new WaitForSeconds(reloadTime); // ÀçÀåÀü ½Ã°£ ´ë±â
+        yield return new WaitForSeconds(reloadTime); // ì¬ì¥ì „ ì‹œê°„ ëŒ€ê¸°
 
-        currentAmmo = maxAmmo; // Åº¾à ÃæÀü
-        isReloading = false;
-        Debug.Log("ÀçÀåÀü ¿Ï·á!");
-
-        // ÀçÀåÀü »óÅÂ ¿ª½Ã ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­ ÇÊ¿ä
+        // ëª¨ë“  í´ë¼ì´ì–¸íŠ¸ì— ì¬ì¥ì „ ì™„ë£Œë¥¼ ì•Œë¦¼
+        photonView.RPC("EndReloadingRPC", RpcTarget.All);
     }
 
-    public void ExecuteEvent()
+    [PunRPC]
+    private void StartReloadingRPC()
     {
-        // °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç¿¡¼­ Æ¯Á¤ Å¸ÀÌ¹Ö¿¡ ÀÌº¥Æ®¸¦ ½ÇÇàÇÏ°í ½ÍÀ» ¶§        
+        isReloading = true;
+        anim.SetTrigger("doReload"); // ì¬ì¥ì „ ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰ (í•„ìš”ì— ë”°ë¼ ì¶”ê°€)
+        Debug.Log("ì¬ì¥ì „ ì¤‘...");
     }
 
-    // IAttack ÀÎÅÍÆäÀÌ½º ±¸Çö
+    [PunRPC]
+    private void EndReloadingRPC()
+    {
+        currentAmmo = maxAmmo; // íƒ„ì•½ ì¶©ì „
+        isReloading = false;
+        Debug.Log("ì¬ì¥ì „ ì™„ë£Œ!");
+    }
+
+    // IAttack ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„
     public float GetSkillCooldown()
     {
         return skillCoolDown;
@@ -267,7 +321,7 @@ public class PlayerAttack_Soldier : MonoBehaviour, IAttack
         return lastSkillTime;
     }
 
-    // Soldier Àü¿ë ÀåÅº¼ö ¸Ş¼­µå
+    // Soldier ì „ìš© ì¥íƒ„ìˆ˜ ë©”ì„œë“œ
     public int GetCurrentAmmo()
     {
         return currentAmmo;
