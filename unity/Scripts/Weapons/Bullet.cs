@@ -5,20 +5,20 @@ public class Bullet : MonoBehaviour
     public enum BulletType
     {
         Normal,
-        Ice,        // ½½·Î¿ì
-        Gunpowder   // Æø¹ßÅº
+        Ice,        // ìŠ¬ë¡œìš°
+        Gunpowder   // í­ë°œíƒ„
     }
 
-    public bool isPiercing; // °üÅëÅº ¿©ºÎ
-    public BulletType bulletType; // ¹ß»çÃ¼ÀÇ ¼Ó¼º
-    public float explosionRadius = 3f; // Æø¹ßÅºÀÇ ¹İ°æ
-    public int damage; // ÃÑ¾ËÀÇ µ¥¹ÌÁö °ª
+    public bool isPiercing; // ê´€í†µíƒ„ ì—¬ë¶€
+    public BulletType bulletType; // ë°œì‚¬ì²´ì˜ ì†ì„±
+    public float explosionRadius = 3f; // í­ë°œíƒ„ì˜ ë°˜ê²½
+    public int damage; // ì´ì•Œì˜ ë°ë¯¸ì§€ ê°’
         
-    public float lifeTime; // ÃÑ¾ËÀÇ »ı¸í ½Ã°£
-    public GameObject shooter; // ¹ß»çÃ¼¸¦ ¹ß»çÇÑ ÁÖÃ¼ (ÀÚ±â ÀÚ½ÅÀ» ½Äº°ÇÏ±â À§ÇÑ º¯¼ö)
+    public float lifeTime; // ì´ì•Œì˜ ìƒëª… ì‹œê°„
+    public GameObject shooter; // ë°œì‚¬ì²´ë¥¼ ë°œì‚¬í•œ ì£¼ì²´ (ìê¸° ìì‹ ì„ ì‹ë³„í•˜ê¸° ìœ„í•œ ë³€ìˆ˜)
 
-    public GameObject explosionEffectPrefab; // Æø¹ß ÀÌÆåÆ® ÇÁ¸®ÆÕ
-    public float effectOffset = 1.5f; // ÀÌÆåÆ® À§Ä¡ Á¶Á¤À» À§ÇÑ ¿ÀÇÁ¼Â
+    public GameObject explosionEffectPrefab; // í­ë°œ ì´í™íŠ¸ í”„ë¦¬íŒ¹
+    public float effectOffset = 1.5f; // ì´í™íŠ¸ ìœ„ì¹˜ ì¡°ì •ì„ ìœ„í•œ ì˜¤í”„ì…‹
 
     public Color normalColor = Color.yellow;
     public Color iceColor = Color.blue;
@@ -28,22 +28,23 @@ public class Bullet : MonoBehaviour
 
     void Awake()
     {
-        bulletRenderer = GetComponent<Renderer>(); // ¹ß»çÃ¼ÀÇ ·»´õ·¯¸¦ °¡Á®¿È
+        bulletRenderer = GetComponent<Renderer>(); // ë°œì‚¬ì²´ì˜ ë Œë”ëŸ¬ë¥¼ ê°€ì ¸ì˜´
     }
 
     void Start()
-    {
-        // ¹ß»çÃ¼ÀÇ ¼Ó¼º¿¡ µû¸¥ ÃÊ±â ¼³Á¤
+    {       
+
+        // ë°œì‚¬ì²´ì˜ ì†ì„±ì— ë”°ë¥¸ ì´ˆê¸° ì„¤ì •
         ApplyBulletProperties();       
 
-        // ÀÏÁ¤ ½Ã°£ÀÌ Áö³ª¸é ÃÑ¾Ë ÆÄ±«
+        // ì¼ì • ì‹œê°„ì´ ì§€ë‚˜ë©´ ì´ì•Œ íŒŒê´´
         Destroy(gameObject, lifeTime);
 
     }
 
     private void ApplyBulletProperties()
     {
-        // ¹ß»çÃ¼ÀÇ ¼Ó¼º¿¡ µû¶ó »ö»ó º¯°æ
+        // ë°œì‚¬ì²´ì˜ ì†ì„±ì— ë”°ë¼ ìƒ‰ìƒ ë³€ê²½
         switch (bulletType)
         {
             case BulletType.Normal:
@@ -60,20 +61,20 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // »ó´ë¿¡°Ô µ¥¹ÌÁö¸¦ Àû¿ë
+        // ìƒëŒ€ì—ê²Œ ë°ë¯¸ì§€ë¥¼ ì ìš©
         PlayerStatus enemyStatus = other.gameObject.GetComponent<PlayerStatus>();
 
-        if (enemyStatus != null && other.gameObject != shooter) // ÀÚ±â ÀÚ½ÅÀ» Á¦¿Ü
+        if (enemyStatus != null && other.gameObject != shooter) // ìê¸° ìì‹ ì„ ì œì™¸
         {
-            // µ¥¹ÌÁö Àû¿ë
+            // ë°ë¯¸ì§€ ì ìš©
             enemyStatus.TakeDamage(damage);
-            Debug.Log($"ÃÑ¾Ë µ¥¹ÌÁö {damage} Àû¿ëµÊ");
+            Debug.Log($"ì´ì•Œ ë°ë¯¸ì§€ {damage} ì ìš©ë¨");
         }
 
-        // Æ¯¼ö È¿°ú Àû¿ë
+        // íŠ¹ìˆ˜ íš¨ê³¼ ì ìš©
         if (bulletType == BulletType.Ice && other.gameObject.CompareTag("Player"))
         {
-            // ½½·Î¿ì È¿°ú Àû¿ë
+            // ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš©
             PlayerStatus targetStatus = other.gameObject.GetComponent<PlayerStatus>();
             if (targetStatus != null)
             {
@@ -82,11 +83,11 @@ public class Bullet : MonoBehaviour
         }
         else if (bulletType == BulletType.Gunpowder)
         {
-            // Æø¹ßÅº È¿°ú Àû¿ë
+            // í­ë°œíƒ„ íš¨ê³¼ ì ìš©
             Explode();
         }
                 
-        // °üÅëÅºÀÌ ¾Æ´Ñ °æ¿ì¿¡¸¸ ÆÄ±«
+        // ê´€í†µíƒ„ì´ ì•„ë‹Œ ê²½ìš°ì—ë§Œ íŒŒê´´
         if (isPiercing)
         {
             return;
@@ -103,27 +104,27 @@ public class Bullet : MonoBehaviour
     {
         Vector3 effectPosition = transform.position + transform.forward * effectOffset;
 
-        // Æø¹ß ÀÌÆåÆ® »ı¼º
+        // í­ë°œ ì´í™íŠ¸ ìƒì„±
         if (explosionEffectPrefab != null)
         {
             GameObject explosionEffect = Instantiate(explosionEffectPrefab, effectPosition, Quaternion.identity);
 
-            // ÀÌÆåÆ®°¡ ÀÏÁ¤ ½Ã°£ ÈÄ¿¡ ÆÄ±«µÇµµ·Ï ¼³Á¤ 
-            Destroy(explosionEffect, 1f); // Æø¹ß ÀÌÆåÆ®°¡ 1ÃÊ ÈÄ ÆÄ±«µÇµµ·Ï ¼³Á¤
+            // ì´í™íŠ¸ê°€ ì¼ì • ì‹œê°„ í›„ì— íŒŒê´´ë˜ë„ë¡ ì„¤ì • 
+            Destroy(explosionEffect, 1f); // í­ë°œ ì´í™íŠ¸ê°€ 1ì´ˆ í›„ íŒŒê´´ë˜ë„ë¡ ì„¤ì •
         }
 
-        // Æø¹ßÅºÀÇ È¿°ú¸¦ Àû¿ëÇÏ´Â ·ÎÁ÷
+        // í­ë°œíƒ„ì˜ íš¨ê³¼ë¥¼ ì ìš©í•˜ëŠ” ë¡œì§
         Collider[] hitColliders = Physics.OverlapSphere(effectPosition, explosionRadius);
         foreach (var hitCollider in hitColliders)
         {
             PlayerStatus targetStatus = hitCollider.GetComponent<PlayerStatus>();
-            if (targetStatus != null && hitCollider.gameObject != shooter) // ÀÚ±â ÀÚ½ÅÀ» Á¦¿Ü
+            if (targetStatus != null && hitCollider.gameObject != shooter) // ìê¸° ìì‹ ì„ ì œì™¸
             {
-                targetStatus.TakeDamage(10); // Æø¹ßÅºÀÇ µ¥¹ÌÁö
+                targetStatus.TakeDamage(10); // í­ë°œíƒ„ì˜ ë°ë¯¸ì§€
             }
         }
 
-        // Æø¹ß ÈÄ ¹ß»çÃ¼ ÆÄ±«
+        // í­ë°œ í›„ ë°œì‚¬ì²´ íŒŒê´´
         if (!isPiercing)
         {
             Destroy(gameObject);

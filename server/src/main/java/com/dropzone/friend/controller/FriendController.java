@@ -95,21 +95,21 @@ public class FriendController {
     // 친구 요청 수락
     @PostMapping("/friends/approve/{friendShipId}")
     @Operation(summary = "친구 요청 수락 API", description = "친구에게서 온 친구 요청을 수락하는 API")
-    public ResponseEntity<?> approveFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+    public ResponseEntity<?> approveFriendShip (@Valid @PathVariable("friendShipId") int friendShipId) throws Exception {
         return friendService.approveFriendShipRequest(friendShipId);
     }
 
     // 친구 요청 거절
     @PostMapping("/friends/refuse/{friendShipId}")
     @Operation(summary = "친구 요청 거절 API", description = "친구에게서 온 친구 요청을 거절하는 API")
-    public ResponseEntity<?> refuseFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+    public ResponseEntity<?> refuseFriendShip (@Valid @PathVariable("friendShipId") int friendShipId) throws Exception {
         return friendService.refuseFriendShipRequest(friendShipId);
     }
 
     // 친구 삭제
     @DeleteMapping("/friends/delete/{friendShipId}")
     @Operation(summary = "친구 요청 삭제 API", description = "친구를 삭제하는 API")
-    public ResponseEntity<?> deleteFriendShip (@Valid @PathVariable("friendShipId") Long friendShipId) throws Exception {
+    public ResponseEntity<?> deleteFriendShip (@Valid @PathVariable("friendShipId") int friendShipId) throws Exception {
         return friendService.deleteFriendship(friendShipId);
     }
 }

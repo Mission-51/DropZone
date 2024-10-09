@@ -16,6 +16,7 @@ spring:
           timeout: 5000
           starttls:
             enable: true
+
   jpa:
     hibernate:
       ddl-auto: update  # 서버 환경에 맞게 테이블 검증
@@ -32,6 +33,9 @@ spring:
     mongodb:
       uri: mongodb://mongodb_container:27017/DropzoneDB
       auto-index-creation: true
+    redis:
+      host: redis-container
+      port: 6379
 
   thymeleaf:
     cache: false  # Thymeleaf 캐시 비활성화
@@ -39,5 +43,7 @@ spring:
 jasypt:
   encryptor:
     bean: jasyptStringEncryptor
-#    key: ${jasypt.encryptor.key}
-    key: Dr@pZoneKey2024!@#$
+    key: ${jasypt.encryptor.key}
+    # key: Dr@pZoneKey2024!@#$
+   
+

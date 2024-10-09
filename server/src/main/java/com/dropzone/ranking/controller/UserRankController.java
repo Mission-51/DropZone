@@ -4,10 +4,7 @@ import com.dropzone.ranking.dto.UserRankDTO;
 import com.dropzone.ranking.service.UserRankService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,5 +25,12 @@ public class UserRankController {
     @Operation(summary = "랭킹", description = "특정 페이지의 유저 랭킹 반환")
     public List<UserRankDTO> getRankings(@RequestParam Optional<Integer> page) {
         return userRankService.getRankings(page);
+    }
+
+    // 특정 유저의 랭킹 정보 반환
+    @GetMapping("/{userId}")
+    @Operation(summary = "특정 유저 랭킹", description = "특정 유저의 랭킹 정보 반환")
+    public UserRankDTO getUserRank(@PathVariable int userId) {
+        return userRankService.getUserRank(userId);
     }
 }

@@ -10,4 +10,7 @@ public class Grenade : ItemData
     public float explosionRange;
     [Header("´ë¹ÌÁö")]
     public int damage;
+
+    [Header("Æø¹ß ÀÌÆåÆ®")]
+    public GameObject explosionEffect; // Æø¹ß ÀÌÆåÆ® ÇÁ¸®ÆÕ
 }

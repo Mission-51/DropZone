@@ -1,75 +1,77 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI; // UI °ü·Ã ³×ÀÓ½ºÆäÀÌ½º Ãß°¡
+using UnityEngine.UI; // UI ê´€ë ¨ ë„¤ì„ìŠ¤í˜ì´ìŠ¤ ì¶”ê°€
+using Photon.Pun;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviourPun
 {
     private Rigidbody rb;
     private Animator anim;
 
-    public float defaultSpeed; // ±âº» ÀÌµ¿ ¼Óµµ
+    public float defaultSpeed; // ê¸°ë³¸ ì´ë™ ì†ë„
     public float moveSpeed;
-    public float dashSpeedMultiplier = 2.0f; // ´ë½¬ÇÒ ¶§ ¼Óµµ ¹èÀ²
-    public float dashDuration = 0.3f; // ´ë½¬ Áö¼Ó ½Ã°£
-    public float dashCooldown; // ´ë½¬ ÄğÅ¸ÀÓ
+    public float dashSpeedMultiplier = 2.0f; // ëŒ€ì‰¬í•  ë•Œ ì†ë„ ë°°ìœ¨
+    public float dashDuration = 0.3f; // ëŒ€ì‰¬ ì§€ì† ì‹œê°„
+    public float dashCooldown; // ëŒ€ì‰¬ ì¿¨íƒ€ì„
 
-    public bool canMove = true; // ÀÌµ¿ °¡´É ¿©ºÎ
-    public bool canDash = true; // ´ë½¬ °¡´É ¿©ºÎ
-    public bool isKnockbackImmune = false; // ³Ë¹é ¸é¿ª »óÅÂ ¿©ºÎ
+    public bool canMove = true; // ì´ë™ ê°€ëŠ¥ ì—¬ë¶€
+    public bool canDash = true; // ëŒ€ì‰¬ ê°€ëŠ¥ ì—¬ë¶€
+    public bool isKnockbackImmune = false; // ë„‰ë°± ë©´ì—­ ìƒíƒœ ì—¬ë¶€
 
     private float hAxis;
     private float vAxis;
-    public bool isDash; // ´ë½¬ »óÅÂ È®ÀÎ
-    private bool isAttack; // °ø°İ »óÅÂ È®ÀÎ
-    private bool isRangedAttack; // ¿ø°Å¸® °ø°İ »óÅÂ È®ÀÎ
+    public bool isDash; // ëŒ€ì‰¬ ìƒíƒœ í™•ì¸
+    private bool isAttack; // ê³µê²© ìƒíƒœ í™•ì¸
+    private bool isRangedAttack; // ì›ê±°ë¦¬ ê³µê²© ìƒíƒœ í™•ì¸
 
-    public float lastDashTime = -100f;  // ¸¶Áö¸· ´ë½¬ ½Ã°£
+    public float lastDashTime = -100f;  // ë§ˆì§€ë§‰ ëŒ€ì‰¬ ì‹œê°„
     private Vector3 moveVec;
     private Vector3 rayVec;
 
-    // »óÅÂ Á¦¾î¸¦ À§ÇØ PlayerStatus ¿¬°á
+    // ìƒíƒœ ì œì–´ë¥¼ ìœ„í•´ PlayerStatus ì—°ê²°
     private PlayerStatus playerStatus;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
 
-        // º® ¶Õ´Â Çö»ó Ã³¸® ¹æÁö
+        // ë²½ ëš«ëŠ” í˜„ìƒ ì²˜ë¦¬ ë°©ì§€
         rb.interpolation = RigidbodyInterpolation.Extrapolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
         anim = GetComponent<Animator>();
-        moveSpeed = defaultSpeed; // ±âº» ÀÌµ¿ ¼Óµµ·Î ÃÊ±âÈ­
+        moveSpeed = defaultSpeed; // ê¸°ë³¸ ì´ë™ ì†ë„ë¡œ ì´ˆê¸°í™”
 
-        playerStatus = GetComponent<PlayerStatus>(); // PlayerStatus ÄÄÆ÷³ÍÆ® °¡Á®¿À±â
-                                                     // UIManager ½ºÅ©¸³Æ®¸¦ Ã£¾Æ ÂüÁ¶
+        playerStatus = GetComponent<PlayerStatus>(); // PlayerStatus ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì˜¤ê¸°
+                                                     // UIManager ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì°¾ì•„ ì°¸ì¡°
 
 
 
-        // PhotonView°¡ ÇÊ¿ä: PhotonView¸¦ Ãß°¡ÇÏ¿© ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡ ¹× ÀÌµ¿ µ¿ÀÛÀ» ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
+        // PhotonViewê°€ í•„ìš”: PhotonViewë¥¼ ì¶”ê°€í•˜ì—¬ í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ ë° ì´ë™ ë™ì‘ì„ ë„¤íŠ¸ì›Œí¬ ìƒì— ë™ê¸°í™”í•´ì•¼ í•¨
     }
 
     void Update()
     {
-        GetInput(); // ÀÔ·Â ¹Ş±â
-        Turn(); // È¸Àü Ã³¸®
+        if (photonView.IsMine)
+        {
+            GetInput(); // ì…ë ¥ ë°›ê¸°
+            Turn(); // íšŒì „ ì²˜ë¦¬
 
-
-        // º® °¨Áö¿ë Ray ¼³Á¤
-        RaycastHit hit;
-        float rayDistance = 5.0f; // Ä³¸¯ÅÍ ¾Õ¿¡ Ray¸¦ ½ò °Å¸®
-
-        Vector3 rayOrigin = new Vector3(transform.position.x, transform.position.y + 1.0f, transform.position.z);
-
-        // µğ¹ö±×¿ë Ray ±×¸®±â
-        Debug.DrawRay(rayOrigin, rayVec * rayDistance, Color.red);
-
-        // ÀÌ ºÎºĞ¿¡ PhotonView.IsMine Ã¼Å©°¡ ÇÊ¿ä: ·ÎÄÃ ÇÃ·¹ÀÌ¾î¸¸ ÀÌµ¿À» Ã³¸®ÇÏµµ·Ï ÇØ¾ß ÇÔ
+            // ìºë¦­í„°ì˜ ë†’ì´ê°€ -30 ì´í•˜ë¡œ ë–¨ì–´ì§€ë©´ dead ìƒíƒœë¡œ ë³€ê²½
+            if (transform.position.y < -30f)
+            {
+                playerStatus.ApplyStatusEffect(PlayerStatus.StatusEffect.Dead);
+            }
+        }
+        
     }
 
     void FixedUpdate()
     {
-        Move(); // ÀÌµ¿ Ã³¸®       
+        if (photonView.IsMine)
+        {
+            Move(); // ì´ë™ ì²˜ë¦¬       
+        }
     }
 
     public void GetInput()
@@ -77,13 +79,11 @@ public class PlayerMovement : MonoBehaviour
         hAxis = Input.GetAxisRaw("Horizontal");
         vAxis = Input.GetAxisRaw("Vertical");
 
-        // ´ë½¬¿Í °°Àº Áß¿äÇÑ ÀÔ·ÂÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡µµ ÀüÆÄµÇ¾î¾ß ÇÏ¹Ç·Î, RPC·Î ´ë½¬ ÀÔ·ÂÀ» Àü¼ÛÇØ¾ß ÇÔ
-        // PhotonView¸¦ ÅëÇØ Dash °ü·Ã ÀÔ·ÂÀ» RPC·Î Àü¼ÛÇÒ ÇÊ¿ä°¡ ÀÖÀ½
+        // ëŒ€ì‰¬ì™€ ê°™ì€ ì¤‘ìš”í•œ ì…ë ¥ì€ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì—ë„ ì „íŒŒë˜ì–´ì•¼ í•˜ë¯€ë¡œ, RPCë¡œ ëŒ€ì‰¬ ì…ë ¥ì„ ì „ì†¡í•´ì•¼ í•¨
+        // PhotonViewë¥¼ í†µí•´ Dash ê´€ë ¨ ì…ë ¥ì„ RPCë¡œ ì „ì†¡í•  í•„ìš”ê°€ ìˆìŒ
         if (Input.GetButtonDown("Fire3") && (playerStatus.currentStatus == PlayerStatus.StatusEffect.None || playerStatus.currentStatus == PlayerStatus.StatusEffect.SuperArmor) && !isAttack)
         {
             StartDash();
-            //Dash();
-            // StartDash¿¡ ´ëÇÑ µ¿ÀÛµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
         }
     }
 
@@ -91,12 +91,12 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!canMove) return;
 
-        if (isRangedAttack) { return; } // ¿ø°Å¸® °ø°İ ÁßÀÏ ¶§´Â ÀÌµ¿ ºÒ°¡
+        if (isRangedAttack) { return; } // ì›ê±°ë¦¬ ê³µê²© ì¤‘ì¼ ë•ŒëŠ” ì´ë™ ë¶ˆê°€
 
-        // °ø°İ ÁßÀÏ ¶§ ÀÌµ¿ ¼Óµµ¸¦ ¹İÀ¸·Î ÁÙÀÓ
+        // ê³µê²© ì¤‘ì¼ ë•Œ ì´ë™ ì†ë„ë¥¼ ë°˜ìœ¼ë¡œ ì¤„ì„
         float adjustedMoveSpeed = isAttack ? moveSpeed / 2 : moveSpeed;
 
-        // »óÅÂ¿¡ µû¶ó ÀÌµ¿ ºÒ°¡ Ã³¸® (¼Ó¹Ú »óÅÂÀÎ °æ¿ì)
+        // ìƒíƒœì— ë”°ë¼ ì´ë™ ë¶ˆê°€ ì²˜ë¦¬ (ì†ë°• ìƒíƒœì¸ ê²½ìš°)
         if (playerStatus.currentStatus == PlayerStatus.StatusEffect.Immobilized)
         {
             adjustedMoveSpeed = 0;
@@ -104,106 +104,127 @@ public class PlayerMovement : MonoBehaviour
 
         moveVec = new Vector3(hAxis, 0, vAxis).normalized;
 
-        // º® °¨Áö¿ë Ray ¼³Á¤
+        // ë²½ ê°ì§€ìš© Ray ì„¤ì •
         RaycastHit hit;
-        float rayDistance = 1.0f; // Ä³¸¯ÅÍ ¾Õ¿¡ Ray¸¦ ½ò °Å¸®
+        float rayDistance = 1.0f; // ìºë¦­í„° ì•ì— Rayë¥¼ ì  ê±°ë¦¬
 
-        // Ä³¸¯ÅÍ ¹Ù´Úº¸´Ù À§¿¡¼­ ray¸¦ ½î±â À§ÇØ À§Ä¡ Á¶Á¤
+        // ìºë¦­í„° ë°”ë‹¥ë³´ë‹¤ ìœ„ì—ì„œ rayë¥¼ ì˜ê¸° ìœ„í•´ ìœ„ì¹˜ ì¡°ì •
         Vector3 rayOrigin = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
 
-        // µğ¹ö±×¿ë Ray ±×¸®±â
+        // ë””ë²„ê·¸ìš© Ray ê·¸ë¦¬ê¸°
         Debug.DrawRay(rayOrigin, moveVec * rayDistance, Color.red);
 
       
 
-        // ÀÌµ¿ ¹æÇâÀ¸·Î Ray¸¦ ½ô
+        // ì´ë™ ë°©í–¥ìœ¼ë¡œ Rayë¥¼ ì¨
         if (Physics.Raycast(rayOrigin, moveVec, out hit, rayDistance))
         {
-            // º®ÀÌ °¨ÁöµÇ¸é ÀÌµ¿ ÁßÁö (º®ÀÌ "Wall" ÅÂ±×¸¦ °¡Áø °æ¿ì)
+            // ë²½ì´ ê°ì§€ë˜ë©´ ì´ë™ ì¤‘ì§€ (ë²½ì´ "Wall" íƒœê·¸ë¥¼ ê°€ì§„ ê²½ìš°)
             if (hit.collider.CompareTag("Untagged"))
             {
-                return; // ÀÌµ¿ ÁßÁö
+                return; // ì´ë™ ì¤‘ì§€
             }
         }
 
-        //transform.position += moveVec * adjustedMoveSpeed * Time.deltaTime; // ±âÁ¸ ¹æ½Ä Á¦°Å
-        rb.MovePosition(transform.position + moveVec * adjustedMoveSpeed * Time.deltaTime); // Rigidbody¸¦ ÅëÇØ ÀÌµ¿ Ã³¸®
+        //transform.position += moveVec * adjustedMoveSpeed * Time.deltaTime; // ê¸°ì¡´ ë°©ì‹ ì œê±°
+        rb.MovePosition(transform.position + moveVec * adjustedMoveSpeed * Time.deltaTime); // Rigidbodyë¥¼ í†µí•´ ì´ë™ ì²˜ë¦¬
 
-        anim.SetBool("isRun", moveVec != Vector3.zero); // ÀÌµ¿ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
+        anim.SetBool("isRun", moveVec != Vector3.zero); // ì´ë™ ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
     }
-
-    void Dash()
-    {
-        Vector3 dashPower = transform.forward * 3.0f;
-        rb.AddForce(dashPower, ForceMode.VelocityChange);
-    }
-
+  
     private void StartDash()
     {
         if (Time.time >= lastDashTime + dashCooldown && moveVec != Vector3.zero && !isAttack)
         {
             isDash = true;
-            moveSpeed = moveSpeed * dashSpeedMultiplier; // ´ë½¬ ½Ã ¼Óµµ Áõ°¡
+            moveSpeed = moveSpeed * dashSpeedMultiplier; // ëŒ€ì‰¬ ì‹œ ì†ë„ ì¦ê°€
             lastDashTime = Time.time;
 
-            anim.SetTrigger("doDash"); // ´ë½¬ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà            
+            anim.SetTrigger("doDash"); // ëŒ€ì‰¬ ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰            
 
-            // ´ë½¬ µ¿ÀÛµµ ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î PhotonView¸¦ ÅëÇØ RPC È£Ãâ ÇÊ¿ä
-            Invoke("EndDash", dashDuration); // ´ë½¬ Áö¼Ó ½Ã°£ÀÌ Áö³ª¸é Á¾·á
+            // ëŒ€ì‰¬ ë™ì‘ë„ ë„¤íŠ¸ì›Œí¬ ìƒì— ë™ê¸°í™”í•´ì•¼ í•˜ë¯€ë¡œ PhotonViewë¥¼ í†µí•´ RPC í˜¸ì¶œ í•„ìš”
+            Invoke("EndDash", dashDuration); // ëŒ€ì‰¬ ì§€ì† ì‹œê°„ì´ ì§€ë‚˜ë©´ ì¢…ë£Œ
         }
     }
 
     private void EndDash()
     {
         isDash = false;
-        moveSpeed = moveSpeed / dashSpeedMultiplier; // ´ë½¬°¡ ³¡³ª¸é ¿ø·¡ ¼Óµµ·Î º¹±¸
-        // ´ë½¬ Á¾·áµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿Í µ¿±âÈ­°¡ ÇÊ¿äÇÏ¹Ç·Î PhotonView¿Í RPC¸¦ »ç¿ë
+        moveSpeed = defaultSpeed; // ëŒ€ì‰¬ê°€ ëë‚˜ë©´ ì›ë˜ ì†ë„ë¡œ ë³µêµ¬        
     }
 
     public void Turn()
     {
-        // °ø°İ, ´ë½¬ ÁßÀÏ ¶§´Â È¸ÀüÇÏÁö ¾ÊÀ½
+        // ê³µê²©, ëŒ€ì‰¬ ì¤‘ì¼ ë•ŒëŠ” íšŒì „í•˜ì§€ ì•ŠìŒ
         if (isAttack || isDash) return;
 
-        // ÀÌµ¿ ÁßÀÏ ¶§´Â ÀÌµ¿ ¹æÇâÀ¸·Î È¸Àü
+        // ì´ë™ ì¤‘ì¼ ë•ŒëŠ” ì´ë™ ë°©í–¥ìœ¼ë¡œ íšŒì „
         if (moveVec != Vector3.zero && !isAttack)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveVec);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
-        }
-
-        // È¸Àü »óÅÂµµ µ¿±âÈ­°¡ ÇÊ¿äÇÒ °æ¿ì RPC·Î È¸Àü °ªÀ» Àü¼ÛÇÒ ¼ö ÀÖÀ½
+        }        
     }
 
-    // °ø°İÇÒ ¶§ ¸¶¿ì½º ¹æÇâÀ¸·Î È¸Àü
+    // ê³µê²©í•  ë•Œ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
     public void TurnTowardsMouse()
     {
-        // ¸¶¿ì½º ¹æÇâÀ¸·Î Áï½Ã È¸Àü
+        // ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ ì¦‰ì‹œ íšŒì „
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        //RaycastHit hit;
+
+        //if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        //{
+        //    // ì¶©ëŒí•œ ì˜¤ë¸Œì íŠ¸ê°€ "Untagged"ë¼ë©´ ë¬´ì‹œ
+        //    if (hit.collider.CompareTag("Untagged"))
+        //    {
+        //        return; // "Untagged" ì˜¤ë¸Œì íŠ¸ì¼ ê²½ìš° í•¨ìˆ˜ ì¢…ë£Œ
+        //    }
+
+
+        //    Vector3 targetPosition = hit.point;
+        //    targetPosition.y = transform.position.y; // ìºë¦­í„°ì˜ ë†’ì´(y)ëŠ” ìœ ì§€
+
+        //    // ì¦‰ì‹œ íšŒì „
+        //    transform.rotation = Quaternion.LookRotation(targetPosition - transform.position);
+        //}
+
+        // Rayê°€ ì¶©ëŒí•˜ëŠ” ëª¨ë“  ì˜¤ë¸Œì íŠ¸ ê°€ì ¸ì˜¤ê¸°
+        RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
+        foreach (RaycastHit hit in hits)
         {
-            Vector3 targetPosition = hit.point;
-            targetPosition.y = transform.position.y; // Ä³¸¯ÅÍÀÇ ³ôÀÌ(y)´Â À¯Áö
+            // "Untagged" ì˜¤ë¸Œì íŠ¸ëŠ” ë¬´ì‹œ
+            if (!hit.collider.CompareTag("Untagged"))
+            {
+                Vector3 targetPosition = hit.point;
+                targetPosition.y = transform.position.y; // ìºë¦­í„°ì˜ ë†’ì´(y)ëŠ” ìœ ì§€
 
-            // Áï½Ã È¸Àü
-            transform.rotation = Quaternion.LookRotation(targetPosition - transform.position);
+                // ìºë¦­í„° íšŒì „
+                transform.rotation = Quaternion.LookRotation(targetPosition - transform.position);
+                break; // ìœ íš¨í•œ íƒœê·¸ë¥¼ ì°¾ì•˜ìœ¼ë‹ˆ ë£¨í”„ ì¢…ë£Œ
+            }
         }
 
-        // ¸¶¿ì½º ¹æÇâÀ¸·Î È¸ÀüÇÏ´Â µ¿ÀÛµµ µ¿±âÈ­°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
     }
 
-    // °ø°İ »óÅÂ¸¦ ¾÷µ¥ÀÌÆ®ÇÏ´Â ¸Ş¼­µå (¿ÜºÎ¿¡¼­ È£Ãâ °¡´É)
+    // ê³µê²© ìƒíƒœë¥¼ ì—…ë°ì´íŠ¸í•˜ëŠ” ë©”ì„œë“œ (ì™¸ë¶€ì—ì„œ í˜¸ì¶œ ê°€ëŠ¥)
     public void SetAttackState(bool isAttacking)
     {
         isAttack = isAttacking;
     }
 
-    // ¿ø°Å¸® °ø°İ »óÅÂ¸¦ ¾÷µ¥ÀÌÆ®ÇÏ´Â ¸Ş¼­µå Ãß°¡
+    // ì›ê±°ë¦¬ ê³µê²© ìƒíƒœë¥¼ ì—…ë°ì´íŠ¸í•˜ëŠ” ë©”ì„œë“œ ì¶”ê°€
     public void SetRangedAttackState(bool isRangedAttacking)
     {
         isRangedAttack = isRangedAttacking;
     }
 
+    // ì´ë™ ê°€ëŠ¥ ì—¬ë¶€ ë™ê¸°í™”
+    [PunRPC]
+    public void UpdateCanMove(bool value)
+    {
+        Debug.Log($"ë¬´ë¸Œë²ˆíŠ¸ì•ˆì— ì´ë™ê°€ëŠ¥ì—¬ë¶€ ì²´í¬{value}, {canMove}");
+        canMove = value;        
+    }
 }
