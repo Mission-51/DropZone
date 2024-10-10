@@ -151,7 +151,7 @@ public class FriendService {
             if (friendShip.getStatus() == FriendShipStatus.ACCEPT) {
                 FriendListDto dto = FriendListDto.builder()
                         // 수정 필요
-                        .fiendShipId(friendShip.getId())
+                        .friendShipId(friendShip.getId())
                         .friendId(friendShip.getFriend().getUserId())
                         .friendEmail(friendShip.getFriend().getUserEmail())
                         .friendNickName(friendShip.getFriend().getUserNickname())
