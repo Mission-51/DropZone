@@ -64,7 +64,6 @@ public class UserServiceImpl implements UserService {
         userStatisticsEntity.setUserId(userEntity.getUserId());
         userStatisticsEntity.setRankingPoints(100); // 초기값 100
         userStatisticsEntity.setTotalKills(0);
-        userStatisticsEntity.setTotalDamage(0);
         userStatisticsEntity.setTotalPlaytime(Time.valueOf("00:00:00")); // 초기 플레이 시간 0
         userStatisticsEntity.setTotalGames(0);
         userStatisticsEntity.setTotalWins(0);
