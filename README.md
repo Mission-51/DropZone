@@ -2,7 +2,6 @@
 <h1>DropZone</h1>
 </div>
 
-
 <h3 style="text-align: center;">SSAFY 11기 2학기 특화 프로젝트</h3>
 
 </br>
@@ -11,24 +10,22 @@
 <img src="./images/DropZone.png" style="width:300px ">
 </div>
 
-
-
 ## 👩‍👩‍👦‍👦팀원 소개
 
 <div align="center">
 
 | <img src="https://github.com/hwangprogram.png" width="100"/> | <img src="https://github.com/ansehdwls.png" width="100"/> | <img src="https://github.com/kdj4355.png" width="100"/> | <img src="https://github.com/INPII.png" width="100"/> | <img src="https://github.com/CHASANGGON.png" width="100"/> | <img src="https://github.com/HG-KR98.png" width="100"/> |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| [황준 - CL](https://github.com/hwangprogram) | [손동희 - CL](https://github.com/) | [김동준 - CL](https://github.com/kdj4355) | [박재영 - CL, BE](https://github.com/INPII) | [차상곤 - BE](https://github.com/CHASANGGON) | [김헌규 - BE](https://github.com/HG-KR98) |
+| :----------------------------------------------------------: | :-------------------------------------------------------: | :-----------------------------------------------------: | :---------------------------------------------------: | :--------------------------------------------------------: | :-----------------------------------------------------: |
+|         [황준 - CL](https://github.com/hwangprogram)         |            [손동희 - CL](https://github.com/)             |        [김동준 - CL](https://github.com/kdj4355)        |      [박재영 - CL, BE](https://github.com/INPII)      |        [차상곤 - BE](https://github.com/CHASANGGON)        |        [김헌규 - BE](https://github.com/HG-KR98)        |
 
 </div>
-
 
 </br>
 
 <h2>🌍Tech Stack</h2>
 
 ### Client
+
 <img src="https://img.shields.io/badge/unity-FFFFFF?style=for-the-badge&logo=unity&logoColor=black">
 <img src="https://img.shields.io/badge/photon-004480?style=for-the-badge&logo=photon&logoColor=white">
 
@@ -44,18 +41,17 @@
 <img src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=fff&style=for-the-badge"> <img src="https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=fff&style=for-the-badge">
 
 ### CI/CD
+
 <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff&style=for-the-badge"> <img src="https://img.shields.io/badge/Jenkins-D24939?logo=jenkins&logoColor=fff&style=for-the-badge">
 <img src="https://img.shields.io/badge/Amazon%20EC2-F90?logo=amazonec2&logoColor=fff&style=for-the-badge">
 <img src="https://img.shields.io/badge/NGINX-009639?logo=nginx&logoColor=fff&style=for-the-badge">
 
 ### Team Collaboration Tools
+
 <img src="https://img.shields.io/badge/Jira-0052CC?logo=jira&logoColor=fff&style=for-the-badge"> <img src="https://img.shields.io/badge/GitLab-FC6D26?logo=gitlab&logoColor=fff&style=for-the-badge">
 <img src="https://img.shields.io/badge/Mattermost-0058CC?logo=mattermost&logoColor=fff&style=for-the-badge">
 <img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=fff&style=for-the-badge">
 <img src="https://img.shields.io/badge/Notion-000?logo=notion&logoColor=fff&style=for-the-badge">
-
-
-
 
 </br>
 </br>
@@ -63,8 +59,6 @@
 <img src="./images/system architecture.png" style="width:100% ">
 
 </br>
-
-
 
 ## 📘소개
 
@@ -82,11 +76,9 @@ SSAFY에서 진행되는 프로젝트마다 새로운 팀원들과 친해지는 
 
 - 모든 SSAFY 교육생: 프로젝트의 부담 없이 가볍게 즐길 수 있는 게임을 찾는 사람들.
 
-
 </br>
 
 ## 주요 컨텐츠
-
 
 ### 최후의 1인
 
@@ -111,7 +103,6 @@ SSAFY에서 진행되는 프로젝트마다 새로운 팀원들과 친해지는 
 본게임에 들어가기 전, 5단계로 구성된 미니 게임을 플레이하게 됩니다. 각 스테이지에는 총 4개의 포탈이 배치되어 있으며, 다른 유저들보다 빠르게 포탈을 이용해 다음 스테이지로 이동해야 합니다. 가장 먼저 5스테이지에 도달한 플레이어는 본게임에서 사용할 수 있는 아이템을 보상으로 받습니다.
 
 </br>
-
 
 ## 주요 기술
 
@@ -147,4 +138,20 @@ Spring STOMP를 이용해 실시간 채팅 기능을 구현하여, 로비에서 
 
 ## 게임 이용 화면
 
-매
+### 회원 가입
+
+![alt text](<회원가입 장면.gif>)
+
+### 로그인
+
+![alt text](<로그인 장면-1.gif>)
+
+### 캐릭터 선택
+
+![alt text](<캐릭터 선택.gif>)
+
+### 게임 매칭
+
+![alt text](<게임 매칭.gif>)
+
+### 인게임
