@@ -7,7 +7,6 @@ import com.dropzone.matchstatistics.entity.UserStatisticsEntity;
 import com.dropzone.matchstatistics.repository.MatchInfoRepository;
 import com.dropzone.matchstatistics.repository.UserMatchStatisticsRepository;
 import com.dropzone.matchstatistics.repository.UserStatisticsRepository;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
