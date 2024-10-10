@@ -45,7 +45,6 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 .character_id(entity.getCharacterId())
                 .match_rank(entity.getMatchRank())
                 .match_kills(entity.getMatchKills())
-                .match_dps(entity.getMatchDps())
                 .match_playtime(entity.getMatchPlaytime())
                 .build();
 
@@ -62,7 +61,6 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                         .character_id(entity.getCharacterId())
                         .match_rank(entity.getMatchRank())
                         .match_kills(entity.getMatchKills())
-                        .match_dps(entity.getMatchDps())
                         .match_playtime(entity.getMatchPlaytime())
                         .build())
                 .collect(Collectors.toList());
@@ -82,7 +80,6 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                         .character_id(entity.getCharacterId())
                         .match_rank(entity.getMatchRank())
                         .match_kills(entity.getMatchKills())
-                        .match_dps(entity.getMatchDps())
                         .match_playtime(entity.getMatchPlaytime())
                         .build())
                 .collect(Collectors.toList());
@@ -131,7 +128,6 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 entity.setUserId(userMatchDTO.getUserId());
                 entity.setCharacterId(userMatchDTO.getCharacter_id());
                 entity.setMatchRank(userMatchDTO.getMatch_rank());
-                entity.setMatchDps(userMatchDTO.getMatch_dps());
                 entity.setMatchKills(userMatchDTO.getMatch_kills());
                 entity.setMatchPlaytime(matchPlayTime);
 
@@ -149,7 +145,6 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                             newUserStatistics.setUserId(userMatchDTO.getUserId());
                             newUserStatistics.setRankingPoints(100);
                             newUserStatistics.setTotalKills(0);
-                            newUserStatistics.setTotalDamage(0);
                             newUserStatistics.setTotalPlaytime(Time.valueOf("00:00:00"));
                             newUserStatistics.setTotalGames(0);
                             newUserStatistics.setTotalWins(0);
@@ -161,7 +156,6 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 System.out.println("계산된 점수: " + rankPointCalculator.calculateRankPoint(playerCount, userMatchDTO.getMatch_rank()));
                 userStatistics.setRankingPoints(userStatistics.getRankingPoints() + rankPointCalculator.calculateRankPoint(playerCount, userMatchDTO.getMatch_rank()));
                 userStatistics.setTotalKills(userStatistics.getTotalKills() + userMatchDTO.getMatch_kills()); // 총 킬수
-                userStatistics.setTotalDamage(userStatistics.getTotalDamage() + userMatchDTO.getMatch_dps()); // 총 딜량
 
                 long newPlaytimeMillis = userStatistics.getTotalPlaytime().getTime() + matchPlayTime.getTime();
                 userStatistics.setTotalPlaytime(new Time(newPlaytimeMillis)); // 총 플레이시간

@@ -24,9 +24,6 @@ public class UserMatchResponseDTO {
     @ApiModelProperty(value = "매치 등수")
     private int match_rank;
 
-    @ApiModelProperty(value = "매치에서 입힌 데미지")
-    private int match_dps;
-
     @ApiModelProperty(value = "매치에서 기록한 킬 수")
     private int match_kills;
 

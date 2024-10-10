@@ -76,16 +76,16 @@ public class StatisticsController {
     @PostMapping("/record")
     public ResponseEntity<?> saveMatchRecords(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "유저ID, 캐릭터ID, 등수, 매치에서 기록한 데미지, 매치에서 기록한 킬 수, 플레이 시간",
+                    description = "유저ID, 캐릭터ID, 등수, 매치에서 기록한 킬 수, 플레이 시간",
                     required = true,
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
                                     example = "[{\"userRecords\": " +
                                             "[" +
-                                            "{\"userId\": 1, \"character_id\": 1, \"match_rank\": 1, \"match_dps\": 250, \"match_kills\": 1, \"match_playtime\": 120}, " +
-                                            "{\"userId\": 2, \"character_id\": 1, \"match_rank\": 2, \"match_dps\": 126, \"match_kills\": 1, \"match_playtime\": 130}, " +
-                                            "{\"userId\": 3, \"character_id\": 2, \"match_rank\": 3, \"match_dps\": 56, \"match_kills\": 0, \"match_playtime\": 1300}" +
+                                            "{\"userId\": 1, \"character_id\": 1, \"match_rank\": 1, \"match_kills\": 1, \"match_playtime\": 120}, " +
+                                            "{\"userId\": 2, \"character_id\": 1, \"match_rank\": 2, \"match_kills\": 1, \"match_playtime\": 130}, " +
+                                            "{\"userId\": 3, \"character_id\": 2, \"match_rank\": 3, \"match_kills\": 0, \"match_playtime\": 1300}" +
                                             "]}]"
                             )
                     )
