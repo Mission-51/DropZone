@@ -140,18 +140,18 @@ Spring STOMP를 이용해 실시간 채팅 기능을 구현하여, 로비에서 
 
 ### 회원 가입
 
-![alt text](<회원가입 장면.gif>)
+<img src="./gif폴더/회원가입 장면.gif" />
 
 ### 로그인
 
-![alt text](<로그인 장면-1.gif>)
+<img src="./gif폴더/로그인 장면.gif" />
 
 ### 캐릭터 선택
 
-![alt text](<캐릭터 선택.gif>)
+<img src="./gif폴더/캐릭터 선택.gif" />
 
 ### 게임 매칭
 
-![alt text](<게임 매칭.gif>)
+<img src="./gif폴더/게임 매칭.gif" />
 
 ### 인게임
