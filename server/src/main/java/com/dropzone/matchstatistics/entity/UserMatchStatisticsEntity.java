@@ -30,9 +30,6 @@ public class UserMatchStatisticsEntity {
     @Column(name = "match_rank")
     private int matchRank;
 
-    @Column(name = "match_dps")
-    private int matchDps;
-
     @Column(name = "match_kills")
     private int matchKills;
 
