@@ -44,6 +44,8 @@ jasypt:
   encryptor:
     bean: jasyptStringEncryptor
     key: ${jasypt.encryptor.key}
-    # key: Dr@pZoneKey2024!@#$
+#    key: Dr@pZoneKey2024!@#$
+
+
    
 

@@ -126,7 +126,7 @@ public class FriendService {
                         // 수정 필요
                         .friendShipId(request.getId())
                         .friendEmail(friend.getUserEmail())
-                        .friendNickname(friend.getUserNickname())
+                        .friendNickName(friend.getUserNickname())
                         .status(request.getStatus())
                         .build();
                 result.add(dto);
