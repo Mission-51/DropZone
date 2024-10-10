@@ -54,7 +54,8 @@
 <img src="https://img.shields.io/badge/Notion-000?logo=notion&logoColor=fff&style=for-the-badge">
 
 </br>
-</br>
+
+
 ## 🚀Architecture
 <img src="./images/system architecture.png" style="width:100% ">
 
