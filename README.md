@@ -137,6 +137,12 @@ Spring STOMP를 이용해 실시간 채팅 기능을 구현하여, 로비에서 
 
 </br>
 
+## ERD
+
+<img src="./exec/Mission51-ERD.png" />
+
+</br>
+
 ## 게임 이용 화면
 
 ### 회원 가입
