@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FriendListDto {
-    private int fiendShipId;
+    private int friendShipId;
     private int friendId;
     private String friendEmail;
     private String friendNickName;

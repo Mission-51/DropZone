@@ -23,10 +23,10 @@ class EmailServiceImpl implements EmailService {
     // 이메일과 인증 코드를 저장하는 ConcurrentHashMap (동시성 문제 해결)
     private final Map<String, String> authenticationStore = new ConcurrentHashMap<>();
 
-    // 인증 코드를 포함한 이메일을 전송하는 메소드
+    // 1. 인증 코드를 포함한 이메일을 전송하는 메소드
     public void sendAuthenticationCodeEmail(String email) {
         String authenticationCode = generateAuthenticationCode();  // 6자리 인증 코드 생성
-        String subject = "인증 코드를 확인해주세요";  // 이메일 제목
+        String subject = "DropZone 회원 가입을 위한 인증 코드를 확인해주세요";  // 이메일 제목
         String text = "이메일 인증을 완료하기 위해, 다음 코드를 입력해주세요: " + authenticationCode;  // 이메일 본문
 
         // 이메일 전송을 위한 메시지 설정
@@ -38,7 +38,6 @@ class EmailServiceImpl implements EmailService {
 
         // 인증 코드를 Map에 저장
         authenticationStore.put(email, authenticationCode);
-        log.info(authenticationStore.get("yg9618@naver.com"));
     }
 
     // 6자리 인증 코드를 생성하는 메소드
@@ -48,7 +47,7 @@ class EmailServiceImpl implements EmailService {
         return String.format("%06d", num);  // 6자리 인증 코드 생성
     }
 
-    // 이메일과 인증 코드를 비교하여 인증 여부를 반환하는 메소드
+    // 2. 이메일과 인증 코드를 비교하여 인증 여부를 반환하는 메소드
     @Override
     public boolean authenticateEmail(String email, String authenticationCode) {
         String storeCode = authenticationStore.get(email);  // 저장된 인증 코드 가져오기

@@ -218,7 +218,7 @@ public class UserController {
     @GetMapping("/search/user_nickname/{user_nickname}")
     public ResponseEntity<?> searchByNickname(
             @Parameter(description = "Nickname", required = true, example = "bluebird")
-            @PathVariable("nickname") String userNickname) {
+            @PathVariable("user_nickname") String userNickname) {
         log.info("닉네임으로 회원 검색 요청: {}", userNickname);
         try {
             UserSearchDTO user = userService.searchByNickname(userNickname);
