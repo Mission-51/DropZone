@@ -58,28 +58,24 @@ public class PlayerStatus : MonoBehaviourPunCallbacks
     }
 
     //[PunRPC]
-    public void TakeDamage(int damage)
+    [PunRPC]
+    public void TakeDamage(int damage, int killerViewID)
     {
-        // 데미지를 마스터 클라이언트에서만 처리하고, 이후 결과를 동기화합니다.
-        if (PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.IsMasterClient) return;  // 마스터 클라이언트에서만 실행
+
+        if (currentStatus == StatusEffect.Dead) return;
+
+        currentHP -= damage;
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+        UpdateHPUI();
+
+        photonView.RPC("UpdateHealth", RpcTarget.All, currentHP);        
+
+        if (currentHP <= 0)
         {
-            if (currentStatus == StatusEffect.Dead) return;
-
-            currentHP -= damage;
-            currentHP = Mathf.Clamp(currentHP, 0, maxHP);
-            UpdateHPUI();
-
-            // HP를 다른 클라이언트에 동기화
-            photonView.RPC("UpdateHealth", RpcTarget.All, currentHP);
-            //UpdateHealth(currentHP);            
-
-            if (currentHP <= 0)
-            {
-                ApplyStatusEffect(StatusEffect.Dead);
-                return;  // 이후에 다른 상태로 변경되지 않도록 여기서 함수를 종료합니다.
-            }
+            ApplyStatusEffect(StatusEffect.Dead);
+            GameManager.Instance.photonView.RPC("PlayerEliminated", RpcTarget.All, photonView.ViewID, killerViewID);
         }
-
     }
 
     [PunRPC]
@@ -146,32 +142,31 @@ public class PlayerStatus : MonoBehaviourPunCallbacks
                 anim.SetBool("isDying", true);
                 break;
 
-            case StatusEffect.Stunned:
+            case StatusEffect.Stunned:                
                 playerMovement.canMove = false;
                 playerMovement.canDash = false;
                 anim.SetTrigger("doStunned");
                 ManageStatusEffect(StatusEffect.Stunned, true);
                 break;
 
-            case StatusEffect.Immobilized:
+            case StatusEffect.Immobilized:              
                 playerMovement.canMove = false;
                 playerMovement.canDash = false;
                 anim.SetBool("isRun", false);
                 break;
 
-            case StatusEffect.Slow1:
+            case StatusEffect.Slow1:                
                 playerMovement.moveSpeed = playerMovement.defaultSpeed * 0.5f;
                 playerMovement.canDash = false;
                 ManageStatusEffect(StatusEffect.Slow1, true);
                 break;
 
-            case StatusEffect.Slow2:
+            case StatusEffect.Slow2:  
                 playerMovement.moveSpeed = playerMovement.defaultSpeed * 0.5f;
                 ManageStatusEffect(StatusEffect.Slow2, true);
                 break;
 
-            case StatusEffect.Knockback:
-                // 넉백 처리 로직                
+            case StatusEffect.Knockback:                
                 break;
 
             case StatusEffect.SuperArmor:                
@@ -181,10 +176,16 @@ public class PlayerStatus : MonoBehaviourPunCallbacks
     }
 
     public void ApplyStatusEffect(StatusEffect newStatus)
-    {
-        // 현재 상태가 Dead일 경우 다른 상태로 변경되지 않도록 합니다.
-
+    {        
+        // 현재 상태가 Dead일 경우 다른 상태로 변경되지 않도록 합니다.        
         if (currentStatus == newStatus || currentStatus == StatusEffect.Dead) return;
+
+        // 슈퍼아머 상태일 때는 다른 상태이상이 적용되지 않도록 합니다.
+        // 단, Dead 상태로는 전환이 가능하게 합니다.
+        if (currentStatus == StatusEffect.SuperArmor && newStatus != StatusEffect.Dead)
+        {
+            return; // Dead 상태가 아니면 상태이상이 적용되지 않음.
+        }        
 
         RemoveStatusEffect();
         currentStatus = newStatus;
@@ -251,7 +252,12 @@ public class PlayerStatus : MonoBehaviourPunCallbacks
     private IEnumerator RemoveStatusEffectAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        photonView.RPC("RemoveStatusEffect", RpcTarget.All);        
+
+        // 죽음 상태일 경우 상태이상을 제거하지 않음
+        if (currentStatus != StatusEffect.Dead)
+        {
+            photonView.RPC("RemoveStatusEffect", RpcTarget.All);
+        }
     }
 
     void OnCollisionEnter(Collision collision)

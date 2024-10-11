@@ -110,7 +110,7 @@ public class MatchRecord : MonoBehaviour
 
         // 매치 결과에 따라 "승리" 또는 "패배" 텍스트 추가
         TMP_Text resultText = newMatchItem.transform.Find("ResultText").GetComponent<TMP_Text>();
-        if (match.match_rank <= 3)
+        if (match.match_rank == 1)
         {
             resultText.text = "승리";
         }
@@ -128,7 +128,7 @@ public class MatchRecord : MonoBehaviour
 
         // 이미지 색상 변경 (public 변수로 색상 조절)
         Image matchImage = newMatchItem.GetComponent<Image>();
-        if (match.match_rank >= 3)
+        if (match.match_rank == 1)
         {
             matchImage.color = winColor; // 승리 시 색상
         }

@@ -8,6 +8,7 @@ public class GameObjectOnpoint : MonoBehaviour, IPointerEnterHandler, IPointerEx
     private Image[] childImgs; // 자식 이미지들
     private Color originalColor; // 원래 색상
     public Color hoverColor = Color.red; // 마우스를 올렸을 때 바꿀 색상
+    public AudioSource clickSound; // 클릭 시 재생할 사운드
     
 
     void Start()

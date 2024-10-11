@@ -25,6 +25,9 @@ public class PlayerAttack_Soldier : MonoBehaviourPun, IAttack
     private float lastSkillTime = -100f; // 마지막 스킬 사용 시간을 기록
 
     public GameObject fireEffect; // 발사 이펙트 (활성화/비활성화 할 이펙트)
+    public AudioSource reloadSound; // 재장전 소리
+    public AudioSource shotSound; // 발사 소리
+    public AudioSource skillSound; // 발사 소리
 
     public PlayerStatus playerStatus;
 
@@ -132,6 +135,8 @@ public class PlayerAttack_Soldier : MonoBehaviourPun, IAttack
 
         // 공격 시 발사체도 다른 클라이언트에 동기화해야 하므로 발사체 생성 및 발사 동작을 RPC로 전파
 
+        if (photonView.IsMine) shotSound.Play(); // 발사 소리 재생
+
         // 발사 이펙트를 활성화
         if (fireEffect != null)
         {
@@ -149,6 +154,7 @@ public class PlayerAttack_Soldier : MonoBehaviourPun, IAttack
             // 무기의 데미지를 발사체에 설정
             bulletScript.damage = weaponManager.GetCurrentWeaponDamage();
             bulletScript.shooter = gameObject; // 발사자를 현재 게임 오브젝트로 설정
+            bulletScript.shooterViewID = photonView.ViewID;
 
             // 무기의 속성에 따라 발사체의 속성을 설정
             WeaponAttribute currentAttribute = weaponManager.GetCurrentWeaponAttribute();
@@ -205,6 +211,8 @@ public class PlayerAttack_Soldier : MonoBehaviourPun, IAttack
 
         // 관통탄 발사 동작은 다른 클라이언트에도 동기화가 필요하므로 RPC 사용 고려
 
+        if (photonView.IsMine) skillSound.Play();
+
         // 발사 이펙트를 활성화
         if (fireEffect != null)
         {
@@ -221,6 +229,7 @@ public class PlayerAttack_Soldier : MonoBehaviourPun, IAttack
         {
             bulletScript.damage = weaponManager.GetCurrentWeaponDamage(); // 무기의 데미지를 관통탄에 설정
             bulletScript.shooter = gameObject; // 발사자를 현재 게임 오브젝트로 설정
+            bulletScript.shooterViewID = photonView.ViewID;
 
             WeaponAttribute currentAttribute = weaponManager.GetCurrentWeaponAttribute();
             switch (currentAttribute)
@@ -297,6 +306,7 @@ public class PlayerAttack_Soldier : MonoBehaviourPun, IAttack
     [PunRPC]
     private void StartReloadingRPC()
     {
+        if (photonView.IsMine) reloadSound.Play();
         isReloading = true;
         anim.SetTrigger("doReload"); // 재장전 애니메이션 실행 (필요에 따라 추가)
         Debug.Log("재장전 중...");

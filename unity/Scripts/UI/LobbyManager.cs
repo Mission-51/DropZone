@@ -108,7 +108,7 @@ public class LobbyManager : MonoBehaviour
                 }
 
                 // 네트워크 연결 설정 (필요한 경우)
-                NetworkManager.instance.ServerConnect();
+                NetworkManager.Instance.ServerConnect();
             }
             else
             {

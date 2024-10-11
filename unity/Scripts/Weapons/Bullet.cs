@@ -1,6 +1,7 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class Bullet : MonoBehaviour
+public class Bullet : MonoBehaviourPun
 {
     public enum BulletType
     {
@@ -25,6 +26,7 @@ public class Bullet : MonoBehaviour
     public Color gunpowderColor = Color.red;
 
     private Renderer bulletRenderer;
+    public int shooterViewID;
 
     void Awake()
     {
@@ -58,17 +60,22 @@ public class Bullet : MonoBehaviour
                 break;
         }
     }
+    private bool hasHit = false; // 이미 충돌했는지 확인하는 플래그
 
     void OnTriggerEnter(Collider other)
     {
-        // 상대에게 데미지를 적용
+        if (hasHit) return;  // 이미 충돌했으면 더 이상 처리하지 않음
+
         PlayerStatus enemyStatus = other.gameObject.GetComponent<PlayerStatus>();
 
-        if (enemyStatus != null && other.gameObject != shooter) // 자기 자신을 제외
+        if (enemyStatus != null && other.gameObject != shooter)
         {
-            // 데미지 적용
-            enemyStatus.TakeDamage(damage);
+            // shooterViewID를 사용하여 데미지를 적용
+            //enemyStatus.photonView.RPC("TakeDamage", RpcTarget.All, damage, shooterViewID);
+            enemyStatus.TakeDamage(damage, shooterViewID); 
             Debug.Log($"총알 데미지 {damage} 적용됨");
+
+            hasHit = true; // 충돌 발생 플래그 설정
         }
 
         // 특수 효과 적용
@@ -93,7 +100,7 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        if (other.gameObject.CompareTag("Wall") || bulletType != BulletType.Gunpowder)
+        if (other.gameObject.CompareTag("Untagged") || bulletType != BulletType.Gunpowder || other.gameObject.CompareTag("Player"))
         {
             Destroy(gameObject);
         }
@@ -120,7 +127,7 @@ public class Bullet : MonoBehaviour
             PlayerStatus targetStatus = hitCollider.GetComponent<PlayerStatus>();
             if (targetStatus != null && hitCollider.gameObject != shooter) // 자기 자신을 제외
             {
-                targetStatus.TakeDamage(10); // 폭발탄의 데미지
+                targetStatus.TakeDamage(10, shooterViewID); // 폭발탄의 데미지
             }
         }
 

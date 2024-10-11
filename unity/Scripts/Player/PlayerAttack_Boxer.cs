@@ -21,6 +21,8 @@ public class PlayerAttack_Boxer : MonoBehaviourPun, IAttack
 
     public PlayerStatus playerStatus;
     public GameObject superArmorEffect;
+    public AudioSource punchSound;
+    public AudioSource skillSound;
 
     private bool canAttack = true;
 
@@ -95,6 +97,7 @@ public class PlayerAttack_Boxer : MonoBehaviourPun, IAttack
     {
         for (int i = 0; i < 3; i++)
         {
+            if (photonView.IsMine) punchSound.Play();
             photonView.RPC("ActivateColliderAndParticle", RpcTarget.All);            
             yield return new WaitForSeconds(0.33f);
         }
@@ -120,18 +123,28 @@ public class PlayerAttack_Boxer : MonoBehaviourPun, IAttack
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") || other.CompareTag("TestEnemy"))
+        // 마스터 클라이언트에서만 처리
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            return;
+        }
+
+        if (other.CompareTag("Player"))
         {
             PlayerStatus enemyStatus = other.GetComponent<PlayerStatus>();
             if (enemyStatus != null)
             {
+                // 데미지를 마스터 클라이언트에서 처리하고, 모든 클라이언트에 동기화
                 photonView.RPC("DealDamage", RpcTarget.All, enemyStatus.photonView.ViewID, damage);
                 ApplyStatusEffectOnHit(enemyStatus);
 
                 if (weaponManager.GetCurrentWeaponAttribute() == WeaponAttribute.Blood)
                 {
                     int healthToRestore = Mathf.CeilToInt(damage * 0.2f);
-                    playerStatus.RestoreHealth(healthToRestore);
+                    //playerStatus.RestoreHealth(healthToRestore);
+
+                    // 체력회복을 마스터 클라이언트에서 처리하고, 모든 클라이언트에 동기화
+                    photonView.RPC("RestoreHealthRPC", RpcTarget.All, healthToRestore);
                 }
             }
         }
@@ -144,8 +157,14 @@ public class PlayerAttack_Boxer : MonoBehaviourPun, IAttack
         PlayerStatus enemyStatus = enemyPhotonView.GetComponent<PlayerStatus>();
         if (enemyStatus != null)
         {
-            enemyStatus.TakeDamage(damageAmount);
+            enemyStatus.TakeDamage(damageAmount, photonView.ViewID);
         }
+    }
+
+    [PunRPC]
+    private void RestoreHealthRPC(int healthToRestore)
+    {
+        playerStatus.RestoreHealth(healthToRestore);
     }
 
     private void ApplyStatusEffectOnHit(PlayerStatus enemyStatus)
@@ -169,6 +188,7 @@ public class PlayerAttack_Boxer : MonoBehaviourPun, IAttack
     [PunRPC]
     private void ActivateSuperArmorRPC()
     {
+        if (photonView.IsMine) skillSound.Play();
         playerStatus.ApplyStatusEffect(StatusEffect.SuperArmor);
         if (superArmorEffect != null)
         {

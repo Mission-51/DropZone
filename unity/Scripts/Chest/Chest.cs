@@ -7,17 +7,15 @@ using System.Linq;
 
 public class Chest : MonoBehaviourPunCallbacks, IPunObservable
 {
-    public List<ItemData> items = new List<ItemData>();    
-
-    [SerializeField]
-    private Transform slotParent;
-
-    [SerializeField]
-    private ChestSlot[] slots;
-
+    public List<ItemData> items = new List<ItemData>();
+    [SerializeField] private Transform slotParent;
+    [SerializeField] private ChestSlot[] slots;
     private PhotonView photonView;
     private Rigidbody rb;
     ChestSpawner spawner;
+
+    [HideInInspector]
+    public int chestId;
 
     private void Awake()
     {
@@ -29,8 +27,20 @@ public class Chest : MonoBehaviourPunCallbacks, IPunObservable
         {
             rb = gameObject.AddComponent<Rigidbody>();
         }
-        rb.isKinematic = true; // 물리 시뮬레이션 비활성화
-        rb.useGravity = false; // 중력 비활성화
+        rb.isKinematic = true;
+        rb.useGravity = false;
+
+        if (photonView.IsMine)
+        {
+            chestId = spawner.GetNextChestId();
+            photonView.RPC("SyncChestId", RpcTarget.AllBuffered, chestId);
+        }
+    }
+
+    [PunRPC]
+    private void SyncChestId(int id)
+    {
+        chestId = id;
     }
 
     private void Start()

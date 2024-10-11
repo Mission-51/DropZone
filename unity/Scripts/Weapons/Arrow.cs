@@ -1,13 +1,15 @@
 using UnityEngine;
 using static Bullet;
+using Photon.Pun;
 
-public class Arrow : MonoBehaviour
+public class Arrow : MonoBehaviourPun
 {
     public int damage;  // 기본 데미지
     public float lifeTime;  // 화살이 파괴되기까지의 시간
     public GameObject hitEffectPrefab;  // 충돌 시 나타날 이펙트 프리팹
     public float effectOffset = -1f; // 이펙트 위치 조정을 위한 오프셋
-    
+    public int shooterViewID;
+
     public enum ArrowType
     {
         Normal,
@@ -32,13 +34,15 @@ public class Arrow : MonoBehaviour
     // 트리거 충돌 처리
     private void OnTriggerEnter(Collider other)
     {
-        
+
 
         // 충돌한 오브젝트가 플레이어일 때 데미지를 처리
-        var player = other.GetComponent<PlayerStatus>();
-        if (player != null)
+        PlayerStatus enemyStatus = other.gameObject.GetComponent<PlayerStatus>();
+        if (enemyStatus != null)
         {
-            player.TakeDamage(damage); // 플레이어의 체력에서 데미지를 차감
+            // shooterViewID를 사용하여 데미지를 적용            
+            enemyStatus.TakeDamage(damage, shooterViewID);
+            Debug.Log($"화살 데미지 {damage} 적용됨");
         }
 
         // arrow속성에 따라 효과 적용하기
