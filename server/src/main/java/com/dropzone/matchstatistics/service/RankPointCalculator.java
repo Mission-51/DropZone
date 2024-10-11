@@ -110,11 +110,11 @@ public class RankPointCalculator {
                         rankPoint = -6;
                         break;
                     case 6:
-                        rankPoint = -10;
+                        rankPoint = 0;
                         break;
                     // 예외 처리
                     default:
-                        rankPoint = 10;
+                        rankPoint = 0;
                         break;
                 }
                 break;
