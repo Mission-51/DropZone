@@ -16,7 +16,7 @@
 
 | <img src="https://github.com/hwangprogram.png" width="100"/> | <img src="https://github.com/ansehdwls.png" width="100"/> | <img src="https://github.com/kdj4355.png" width="100"/> | <img src="https://github.com/INPII.png" width="100"/> | <img src="https://github.com/CHASANGGON.png" width="100"/> | <img src="https://github.com/HG-KR98.png" width="100"/> |
 | :----------------------------------------------------------: | :-------------------------------------------------------: | :-----------------------------------------------------: | :---------------------------------------------------: | :--------------------------------------------------------: | :-----------------------------------------------------: |
-|         [황준 - CL](https://github.com/hwangprogram)         |            [손동희 - CL](https://github.com/)             |        [김동준 - CL](https://github.com/kdj4355)        |      [박재영 - CL, BE](https://github.com/INPII)      |        [차상곤 - BE](https://github.com/CHASANGGON)        |        [김헌규 - BE](https://github.com/HG-KR98)        |
+|         [황준 - UNITY](https://github.com/hwangprogram)         |            [손동희 - UNITY](https://github.com/)             |        [김동준 - UNITY](https://github.com/kdj4355)        |      [박재영 - UNITY, BE](https://github.com/INPII)      |        [차상곤 - BE](https://github.com/CHASANGGON)        |        [김헌규 - BE](https://github.com/HG-KR98)        |
 
 </div>
 
