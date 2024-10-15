@@ -16,7 +16,7 @@
 
 | <img src="https://github.com/hwangprogram.png" width="100"/> | <img src="https://github.com/ansehdwls.png" width="100"/> | <img src="https://github.com/kdj4355.png" width="100"/> | <img src="https://github.com/INPII.png" width="100"/> | <img src="https://github.com/CHASANGGON.png" width="100"/> | <img src="https://github.com/HG-KR98.png" width="100"/> |
 | :----------------------------------------------------------: | :-------------------------------------------------------: | :-----------------------------------------------------: | :---------------------------------------------------: | :--------------------------------------------------------: | :-----------------------------------------------------: |
-|         [황준 - UNITY](https://github.com/hwangprogram)         |            [손동희 - UNITY](https://github.com/)             |        [김동준 - UNITY](https://github.com/kdj4355)        |      [박재영 - UNITY, BE](https://github.com/INPII)      |        [차상곤 - BE](https://github.com/CHASANGGON)        |        [김헌규 - BE](https://github.com/HG-KR98)        |
+|       [황준 - UNITY](https://github.com/hwangprogram)        |           [손동희 - UNITY](https://github.com/)           |      [김동준 - UNITY](https://github.com/kdj4355)       |    [박재영 - UNITY, BE](https://github.com/INPII)     |        [차상곤 - BE](https://github.com/CHASANGGON)        |        [김헌규 - BE](https://github.com/HG-KR98)        |
 
 </div>
 
@@ -147,11 +147,11 @@ Spring STOMP를 이용해 실시간 채팅 기능을 구현하여, 로비에서 
 
 ### 👨‍💼회원 가입
 
-<img src="./gif폴더/회원가입 장면.gif" />
+<img src="./gif폴더/회원가입.gif" />
 
 ### 👋로그인
 
-<img src="./gif폴더/로그인 장면.gif" />
+<img src="./gif폴더/로그인.gif" />
 
 ### 🕴🚶‍♂️캐릭터 선택🧍‍♂️🕺
 
@@ -164,14 +164,17 @@ Spring STOMP를 이용해 실시간 채팅 기능을 구현하여, 로비에서 
 ### 🏴인게임
 
 #### 🌄로딩
+
 <img src="./gif폴더/인게임 로딩.gif">
 
 #### 🏑💉아이템 파밍💊💣
+
 <img src="./gif폴더/아이템 파밍.gif">
 
 #### 🏹무기 업그레이드
+
 <img src="./gif폴더/무기 업그레이드.gif">
 
 #### ⚔전투
-<img src="./gif폴더/싸움하는씬.gif">
 
+<img src="./gif폴더/싸움하는씬.gif">
