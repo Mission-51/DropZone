@@ -164,17 +164,14 @@ Spring STOMP를 이용해 실시간 채팅 기능을 구현하여, 로비에서 
 ### 인게임
 
 #### 로딩
-
-<img src="./gif폴더/인게임 로딩.gif">
+<img src="./gif폴더/인게임 로딩.gif" style="width: 100%;">
 
 #### 아이템 파밍
-
-<img src="./gif폴더/아이템 파밍.gif">
+<img src="./gif폴더/아이템 파밍.gif" style="width: 100%;">
 
 #### 무기 업그레이드
-
-<img src="./gif폴더/무기 업그레이드.gif">
+<img src="./gif폴더/무기 업그레이드.gif" style="width: 100%;">
 
 #### 싸움
+<img src="./gif폴더/싸움하는씬.gif" style="width: 100%;">
 
-<img src="./gif폴더/싸움하는씬.gif">

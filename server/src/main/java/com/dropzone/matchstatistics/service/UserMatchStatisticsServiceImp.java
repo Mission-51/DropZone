@@ -126,9 +126,13 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 UserMatchStatisticsEntity entity = new UserMatchStatisticsEntity();
                 entity.setUserId(userMatchDTO.getUserId());
                 entity.setCharacterId(userMatchDTO.getCharacter_id());
-                entity.setMatchRank(userMatchDTO.getMatch_rank());
+//                entity.setMatchRank(userMatchDTO.getMatch_rank());
                 entity.setMatchKills(userMatchDTO.getMatch_kills());
                 entity.setMatchPlaytime(matchPlayTime);
+
+                // 랭크가 0이면 1로 변경
+                int matchRank = userMatchDTO.getMatch_rank() == 0 ? 1 : userMatchDTO.getMatch_rank();
+                entity.setMatchRank(matchRank);
 
                 // 매치 정보 설정 (MatchInfoEntity 객체 사용)
                 entity.setMatch(newMatchInfo);
