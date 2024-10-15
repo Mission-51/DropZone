@@ -1,61 +1,52 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using System.Collections;
+using ExitGames.Client.Photon;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
-    [Header("UI References")]
-    public GameObject lobbyPanel;
-    public GameObject waitingPanel;
-    public GameObject LobbyMasterServerConnect;
+    public static NetworkManager Instance { get; private set; }
 
-    private static NetworkManager m_instance;
+    [SerializeField] private GameObject lobbyPanel;
+    [SerializeField] private GameObject waitingPanel;
+    [SerializeField] private GameObject LobbyMasterServerConnect;
+
     private string selCharacter;
-    private string gameVersion = "1"; // 게임 버전
-
-    public static NetworkManager instance
-    {
-        get
-        {
-            if (m_instance == null)
-            {
-                m_instance = FindObjectOfType<NetworkManager>();
-            }
-            return m_instance;
-        }
-    }
+    private string gameVersion = "1";
+    private const float MaxWaitTime = 60f;
+    private const int MaxRoomUser = 6;
+    private const string GameStartedKey = "GameStarted";
+    private Coroutine gameStartCoroutine;
+    private bool isGameStarted = false;
 
     private void Awake()
     {
-        if (instance != this)
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
         {
             Destroy(gameObject);
         }
         PhotonNetwork.AutomaticallySyncScene = true;
     }
 
-    private void Start()
-    {
-        // 초기화 로직
-    }
-
     public void ServerConnect()
     {
+        Debug.Log("서버 연결 시도");
         PhotonNetwork.GameVersion = gameVersion;
         PhotonNetwork.NickName = LobbyManager.instance.GetNick();
         PhotonNetwork.ConnectUsingSettings();
     }
 
-    public override void OnJoinedLobby()
-    {
-        Debug.Log("로비에 접속했습니다.");
-        // lobbyPanel.SetActive(true); // 로비 UI 활성화
-    }
-
     public override void OnConnectedToMaster()
     {
         Debug.Log("마스터 서버 접속 완료");
-        PhotonNetwork.JoinLobby(); // 로비에 접속
+        PhotonNetwork.JoinLobby();
         LobbyMasterServerConnect.SetActive(false);
     }
 
@@ -63,11 +54,14 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsConnected && PhotonNetwork.InLobby)
         {
-            PhotonNetwork.LocalPlayer.SetCustomProperties
-                (new ExitGames.Client.Photon.Hashtable
-                { { "character", selCharacter },
-                      { "nickname", LobbyManager.instance.GetNick() } });
-            PhotonNetwork.JoinRandomRoom();
+            Debug.Log("빠른 매치 시작");
+            PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable
+            {
+                { "character", selCharacter },
+                { "nickname", LobbyManager.instance.GetNick() },
+                { "money", 0 }
+            });
+            PhotonNetwork.JoinRandomRoom(new Hashtable { { GameStartedKey, false } }, MaxRoomUser);
         }
         else
         {
@@ -77,80 +71,147 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        Debug.Log("방이 없어 새로운 방을 생성합니다.");
-        PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = 2 }); // 최대 2명
-    }
-
-    public override void OnCreatedRoom()
-    {
-        Debug.Log("새로운 방이 생성되었습니다.");
-    }
-
-    public override void OnJoinedRoom()
-    {
-        Debug.Log("유저가 방에 들어왔습니다.");
-        UpdateMatchingUser();
-        // 방에 입장할 때마다 플레이어 수 체크
-        CheckPlayersAndLoadScene();
+        Debug.Log("적합한 방이 없어 새로운 방을 생성합니다.");
+        RoomOptions roomOptions = new RoomOptions
+        {
+            MaxPlayers = MaxRoomUser,
+            CustomRoomProperties = new Hashtable { { GameStartedKey, false } },
+            CustomRoomPropertiesForLobby = new string[] { GameStartedKey }
+        };
+        PhotonNetwork.CreateRoom(null, roomOptions);
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        Debug.Log("유저 접속함");
-        // 새로운 유저가 방에 들어왔을 때 플레이어 수 체크
+        Debug.Log($"새 플레이어 입장: {newPlayer.NickName}. 현재 인원: {PhotonNetwork.CurrentRoom.PlayerCount}/{MaxRoomUser}");
         UpdateMatchingUser();
-        CheckPlayersAndLoadScene();
+        CheckPlayersAndStartTimer();
     }
 
-    private void CheckPlayersAndLoadScene()
+    private void CheckPlayersAndStartTimer()
     {
-        // 방의 플레이어 수가 최대 플레이어 수와 같으면 씬 로드
-        if (PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers)
+        if (PhotonNetwork.IsMasterClient && !isGameStarted)
         {
-            Debug.Log("모든 유저가 방에 들어왔습니다. 씬을 로드합니다.");
+            if (PhotonNetwork.CurrentRoom.PlayerCount == MaxRoomUser)
+            {
+                Debug.Log("최대 인원 도달. 게임 즉시 시작");
+                StartGame();
+            }
+            //else if (PhotonNetwork.CurrentRoom.PlayerCount <= 2 && PhotonNetwork.CurrentRoom.PlayerCount > 1)
+            //{
+            //    Debug.Log($"{MaxWaitTime}초 타이머 시작");
+            //    if (gameStartCoroutine != null)
+            //    {
+            //        StopCoroutine(gameStartCoroutine);
+            //    }
+            //    gameStartCoroutine = StartCoroutine(StartGameAfterDelay());
+            //}
+        }
+    }
+
+    private IEnumerator StartGameAfterDelay()
+    {
+        float elapsedTime = 0f;
+        while (elapsedTime < MaxWaitTime)
+        {
+            if (isGameStarted || PhotonNetwork.CurrentRoom.PlayerCount == MaxRoomUser)
+            {
+                yield break; // 게임이 이미 시작되었거나 최대 인원에 도달한 경우 코루틴 종료
+            }
+            yield return new WaitForSeconds(1f);
+            elapsedTime += 1f;
+        }
+
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount >= 2 && !isGameStarted)
+        {
+            StartGame();
+        }
+    }
+
+    private void StartGame()
+    {
+        if (PhotonNetwork.IsMasterClient && !isGameStarted)
+        {
+            Debug.Log("게임 시작 신호 전송");
+            isGameStarted = true;
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { { GameStartedKey, true } });
             PhotonNetwork.LoadLevel("MainScene");
+        }
+    }
+
+    public void UpdateMatchingUser()
+    {
+        if (PhotonNetwork.InRoom)
+        {
+            LobbyManager.instance.SetCurrentUser($"{PhotonNetwork.CurrentRoom.PlayerCount} / {MaxRoomUser}");
+        }
+        else
+        {
+            LobbyManager.instance.SetCurrentUser("0 / 0");
         }
     }
 
     public void setSelCharacter(string idx)
     {
         this.selCharacter = idx;
-        Debug.Log(idx);
+        Debug.Log($"선택된 캐릭터: {idx}");
     }
 
-    // 매칭 취소
     public void OnCancelMatchmakingButtonClicked()
     {
         if (PhotonNetwork.InRoom)
         {
             PhotonNetwork.LeaveRoom();
+            if (gameStartCoroutine != null)
+            {
+                StopCoroutine(gameStartCoroutine);
+                gameStartCoroutine = null;
+            }
             UpdateMatchingUser();
-            Debug.Log("매칭이 취소되고 방을 나갔습니다.");
-        }
-        else
-        {
-            Debug.Log("현재 방에 없습니다.");
         }
     }
 
-    // 매칭 취소
-    public void MatchStop()
+    public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
     {
-        if (PhotonNetwork.InRoom)
+        if (propertiesThatChanged.TryGetValue(GameStartedKey, out object gameStartedObj))
         {
-            PhotonNetwork.LeaveRoom();
-            UpdateMatchingUser();
-            Debug.Log("매칭이 취소되고 방을 나갔습니다.");
-        }
-        else
-        {
-            Debug.Log("현재 방에 없습니다.");
+            isGameStarted = (bool)gameStartedObj;
+            if (isGameStarted)
+            {
+                if (gameStartCoroutine != null)
+                {
+                    StopCoroutine(gameStartCoroutine);
+                    gameStartCoroutine = null;
+                }
+            }
         }
     }
 
-    public void UpdateMatchingUser()
+    public override void OnJoinedRoom()
     {
-        Debug.Log(PhotonNetwork.CurrentRoom.PlayerCount);
-        LobbyManager.instance.SetCurrentUser($"{PhotonNetwork.CurrentRoom.PlayerCount} / {PhotonNetwork.CurrentRoom.MaxPlayers}");
+        Debug.Log($"방 입장 완료. 현재 인원: {PhotonNetwork.CurrentRoom.PlayerCount}/{MaxRoomUser}");
+        UpdateMatchingUser();
+
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(GameStartedKey, out object gameStartedObj))
+        {
+            isGameStarted = (bool)gameStartedObj;
+        }
+
+        if (!isGameStarted)
+        {
+            CheckPlayersAndStartTimer();
+        }
+    }
+
+    public override void OnLeftRoom()
+    {
+        Debug.Log("방에서 나감");
+        UpdateMatchingUser();
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        Debug.Log($"연결 끊김: {cause}");
+        LobbyMasterServerConnect.SetActive(true);
     }
 }

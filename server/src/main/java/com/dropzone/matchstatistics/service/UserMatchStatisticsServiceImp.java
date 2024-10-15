@@ -126,7 +126,7 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 UserMatchStatisticsEntity entity = new UserMatchStatisticsEntity();
                 entity.setUserId(userMatchDTO.getUserId());
                 entity.setCharacterId(userMatchDTO.getCharacter_id());
-//                entity.setMatchRank(userMatchDTO.getMatch_rank());
+                // entity.setMatchRank(userMatchDTO.getMatch_rank());
                 entity.setMatchKills(userMatchDTO.getMatch_kills());
                 entity.setMatchPlaytime(matchPlayTime);
 

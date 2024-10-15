@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Photon.Pun;
+using UnityEngine;
 
 public class MinimapController : MonoBehaviourPun
 {
@@ -18,7 +18,7 @@ public class MinimapController : MonoBehaviourPun
         {
             playerPos = photonView.transform;
             minimapCam = GameObject.Find("MinimapCamera").GetComponent<Camera>();
-            minimap = GameObject.Find("RawImage").GetComponent<Transform>();
+            minimap = GameObject.Find("MinimapBg").GetComponent<Transform>();
             Debug.Log("로컬 플레이어의 위치: " + playerPos.position);
         }
         else

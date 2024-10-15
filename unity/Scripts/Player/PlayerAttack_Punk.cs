@@ -23,6 +23,9 @@ public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
 
     public PlayerStatus playerStatus;
 
+    public AudioSource swingSound;
+    public AudioSource skillSound;
+
     private bool canAttack = true;
 
     void Awake()
@@ -107,12 +110,12 @@ public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
     {
         for (int i = 0; i < 2; i++) // 2 콤보 어택
         {
-            photonView.RPC("ActivateAttackCollider", RpcTarget.All);            
+            if (photonView.IsMine) swingSound.Play();
+            ActivateAttackCollider();
             yield return new WaitForSeconds(0.5f); // 공격 간격
         }
     }
-
-    [PunRPC]
+        
     private void ActivateAttackCollider()
     {
         attackCollider.SetActive(true);
@@ -134,7 +137,7 @@ public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
     private void OnTriggerEnter(Collider other)
     {
         // 공격 콜라이더와 스킬 콜라이더를 구분
-        if (other.CompareTag("Player") || other.CompareTag("TestEnemy"))
+        if (other.CompareTag("Player"))
         {
             // 공격 콜라이더에 맞았을 때
             if (attackCollider.activeSelf)
@@ -158,7 +161,7 @@ public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
         if (enemyStatus != null)
         {
             // 데미지 적용
-            enemyStatus.TakeDamage(damage);
+            enemyStatus.TakeDamage(damage, photonView.ViewID);
 
             // 상태이상 적용
             ApplyStatusEffectOnHit(enemyStatus);
@@ -172,6 +175,15 @@ public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
 
         if (enemyRb != null && enemyStatus != null)
         {
+            // 데미지 적용 (스킬데미지 = 데미지 * 1.5)
+            enemyStatus.TakeDamage(Mathf.RoundToInt(damage * 1.5f), photonView.ViewID);            
+
+            // 상대방이 슈퍼아머 상태라면 넉백만 무시
+            if (enemyStatus.currentStatus == PlayerStatus.StatusEffect.SuperArmor)
+            {                
+                return;
+            }
+
             // 넉백 방향 계산
             Vector3 knockbackDirection = (other.transform.position - transform.position).normalized;
             knockbackDirection.y = 0f; // y축을 고정하여 위/아래 움직임을 방지
@@ -180,10 +192,7 @@ public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
             enemyRb.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
 
             // 상태이상을 Knockback으로 설정
-            enemyStatus.ApplyStatusEffect(StatusEffect.Knockback);
-
-            // 데미지 적용 (스킬데미지 = 데미지 * 1.5)
-            enemyStatus.TakeDamage(Mathf.RoundToInt(damage * 1.5f));
+            enemyStatus.ApplyStatusEffect(StatusEffect.Knockback);  
         }
     }
 
@@ -226,6 +235,7 @@ public class PlayerAttack_Punk : MonoBehaviourPun, IAttack
 
     private void ActivateSkillCollider()
     {
+        if (photonView.IsMine) skillSound.Play();
         skillCollider.SetActive(true);
     }
 

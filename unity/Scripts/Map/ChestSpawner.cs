@@ -16,6 +16,7 @@ public class ChestSpawner : MonoBehaviourPunCallbacks
     private static List<ItemData> healItems = new List<ItemData>();
     private HashSet<int> usedSpotIndices = new HashSet<int>();
     private bool chestsSpawned = false;
+    private int nextChestId = 0;    
 
     void Start()
     {
@@ -47,6 +48,11 @@ public class ChestSpawner : MonoBehaviourPunCallbacks
         ShuffleList(healItems);
 
         Debug.Log($"아이템 초기화 - Money: {moneys.Count}, Item: {useItems.Count}, Heal: {healItems.Count}");
+    }
+
+    public int GetNextChestId()
+    {
+        return nextChestId++;
     }
 
     private void SpawnChests()

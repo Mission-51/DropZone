@@ -139,7 +139,7 @@ public class Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         Debug.Log("마우스가 인벤토리 UI에 진입하였습니다.");
         if (go_Player != null)
         {
-            GameManager.instance.SetCanAttackForPlayer(go_Player, false);            
+            GameManager.Instance.SetCanAttackForPlayer(go_Player, false);            
         }
     }
 
@@ -148,7 +148,7 @@ public class Inventory : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         Debug.Log("마우스가 인벤토리 UI에서 빠져나왔습니다.");
         if (go_Player != null)
         {
-            GameManager.instance.SetCanAttackForPlayer(go_Player, true);            
+            GameManager.Instance.SetCanAttackForPlayer(go_Player, true);            
         }
     }
 

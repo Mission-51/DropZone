@@ -6,6 +6,6 @@ public class CancleBtn : MonoBehaviour, IPointerClickHandler
 {
     public void OnPointerClick(PointerEventData eventData)
     {
-        NetworkManager.instance.MatchStop();
+        NetworkManager.Instance.OnLeftRoom();
     }
 }

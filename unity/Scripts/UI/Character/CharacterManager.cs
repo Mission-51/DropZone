@@ -74,6 +74,6 @@ public class CharacterManager : MonoBehaviour
     private void UpdateNetworkCharacter(int index)
     {
         Debug.Log(networkCharacters[index]);
-        NetworkManager.instance.setSelCharacter(networkCharacters[index]);
+        NetworkManager.Instance.setSelCharacter(networkCharacters[index]);
     }
 }

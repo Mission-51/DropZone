@@ -56,6 +56,7 @@ public class AuthManager : MonoBehaviour
     private bool registeremailcheck = false;
     private bool registerpasswordcheck = false;
     private bool registernicknamecheck = false;
+    private bool isRegisterInProgress = false; // 회원가입 중인지 체크하는 변수
 
 
     private void Update()
@@ -133,6 +134,9 @@ public class AuthManager : MonoBehaviour
     {
         using (UnityWebRequest webRequest = UnityWebRequest.Post($"{ec2URL}api/users/sendEmail?email={email}", ""))
         {
+            requestcode.color = Color.white;
+            requestcode.text = "전송 중...";
+
             yield return webRequest.SendWebRequest();
 
             if (webRequest.result == UnityWebRequest.Result.Success)
@@ -254,13 +258,17 @@ public class AuthManager : MonoBehaviour
 
     public void CheckAllConditionsAndRegister()
     {
+        if (isRegisterInProgress) // 이미 회원가입이 진행 중이라면 다시 시도하지 않음
+        {
+            Debug.Log("이미 회원가입 시도가 진행 중입니다.");
+            return;
+        }
+
         // 세 가지 조건이 모두 true일 때만 회원가입 진행
         if (registeremailcheck && registerpasswordcheck && registernicknamecheck)
         {
+            isRegisterInProgress = true; // 회원가입 진행 상태로 설정
             Register(); // 회원가입 함수 호출
-
-            
-
         }
         else if (registeremailcheck == false)
         {
@@ -318,7 +326,7 @@ public class AuthManager : MonoBehaviour
                 RegistorErrorText.text = "가입에 실패하였습니다.";
                 
             }
-           
+            isRegisterInProgress = false; // 회원가입이 완료되었으므로 상태 초기화
         }
     }
     public void Login()

@@ -323,7 +323,7 @@ public class StoreUI : MonoBehaviour
         // 상점이 활성화되면 공격 불가, 비활성화되면 공격 가능
         if (weaponManager != null && weaponManager.gameObject != null)
         {
-            GameManager.instance.SetCanAttackForPlayer(weaponManager.gameObject, !storeUI.activeSelf);
+            GameManager.Instance.SetCanAttackForPlayer(weaponManager.gameObject, !storeUI.activeSelf);
         }
     }
 
@@ -335,7 +335,7 @@ public class StoreUI : MonoBehaviour
         // 상점을 닫으면 공격 가능하게 설정
         if (weaponManager != null && weaponManager.gameObject != null)
         {
-            GameManager.instance.SetCanAttackForPlayer(weaponManager.gameObject, true);
+            GameManager.Instance.SetCanAttackForPlayer(weaponManager.gameObject, true);
         }
     }
 

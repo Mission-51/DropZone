@@ -1,23 +1,27 @@
-using System;
+using UnityEngine;
+using TMPro;
+using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using UnityEngine;
-using Photon.Pun;
 
-public class MapDropper : MonoBehaviourPun
+public class MapDropper : MonoBehaviourPunCallbacks
 {
-    public GameObject map; // 맵
-    public float fallSpeed = 50f; // 맵 떨어지는 속도
-    public TextMeshProUGUI timerText; // 타이머(텍스트)
+    public GameObject map;
+    public float fallSpeed = 50f;
+    public TextMeshProUGUI timerText;
+    public GameObject warningText;
+    public AudioSource siren;
+    public GameObject loadingScreen;
+    private bool timerStarted = false;
 
-    private Transform[] tiles; // 맵 타일들 (배열)
-    private float time = 0; // 시간
+    private Transform[] tiles;
+    private float time = 0;
 
-    static int N = 20; // 맵 크기 설정
-    static int totalTiles = N * N; // 총 타일 수
+    static int N = 20;
+    static int totalTiles = N * N;
 
-    private List<int[]> targetTiles = new List<int[]>(); // 라운드별 떨어질 좌표들
+    private List<int[]> targetTiles = new List<int[]>();
 
     static int[][] directions = new int[][]
     {
@@ -27,14 +31,12 @@ public class MapDropper : MonoBehaviourPun
         new int[] {0, 1}   // 우
     };
 
-    private void Start()
+    void Start()
     {
         tiles = map.transform.Cast<Transform>().ToArray();
+        loadingScreen.SetActive(true);
 
-        // 맵 타일
         int[,] mapGrid = new int[N, N];
-
-        // 맵을 초기화 (모든 타일이 1로 채워짐, 1은 타일이 있는 상태)
         for (int i = 0; i < N; i++)
         {
             for (int j = 0; j < N; j++)
@@ -43,7 +45,6 @@ public class MapDropper : MonoBehaviourPun
             }
         }
 
-        // 마지막까지 남을 타일을 랜덤으로 선택
         System.Random rnd = new System.Random();
         int lastTileX = rnd.Next(0, N);
         int lastTileY = rnd.Next(0, N);
@@ -53,14 +54,41 @@ public class MapDropper : MonoBehaviourPun
         PlayRounds(mapGrid, totalTiles, parentTile, N);
     }
 
-    private void Update()
+    void Update()
     {
-        // 시간 세주기
-        time += Time.deltaTime;
-        timerText.text = Math.Round(time).ToString();
+        if (!timerStarted) return;
 
-        // 각 라운드에 따라 타일 경고 및 제거
-        CheckRounds();
+        ShowWarnText();
+        PlaySiren();
+        if (PhotonNetwork.IsMasterClient)
+        {
+            time += Time.deltaTime;
+            photonView.RPC("SyncTime", RpcTarget.All, time);
+            CheckRounds();
+        }
+
+        if (time > 0) loadingScreen.SetActive(false);
+
+        UpdateTimerText();
+    }
+
+    [PunRPC]
+    private void SyncTime(float syncedTime)
+    {
+        time = syncedTime;
+    }
+
+    private void UpdateTimerText()
+    {
+        timerText.text = Mathf.Round(time).ToString();
+    }
+
+    [PunRPC]
+    public void StartTimer()
+    {
+        timerStarted = true;
+        time = 0;
+        Debug.Log("MapDropper timer started");
     }
 
     private void CheckRounds()
@@ -88,59 +116,87 @@ public class MapDropper : MonoBehaviourPun
             WarnTiles(targetTiles[3]);
             if (time > 480) DropTiles(targetTiles[3]);
         }
+
+        if (time > 540 && targetTiles.Count > 4)
+        {
+            WarnTiles(targetTiles[4]);
+            if (time > 600) DropTiles(targetTiles[4]);
+        }
+    }
+
+    private void ShowWarnText()
+    {
+        if (time > 60 && time < 70) warningText.SetActive(true);
+        else if (time > 180 && time < 190) warningText.SetActive(true);
+        else if (time > 300 && time < 310) warningText.SetActive(true);
+        else if (time > 420 && time < 430) warningText.SetActive(true);
+        else if (time > 480 && time < 490) warningText.SetActive(true);
+        else warningText.SetActive(false);
+    }
+
+    private void PlaySiren()
+    {
+        if (time > 60 && time < 61) siren.Play();
+        else if (time > 180 && time < 181) siren.Play();
+        else if (time > 300 && time < 301) siren.Play();
+        else if (time > 420 && time < 421) siren.Play();
+        else if (time > 480 && time < 481) siren.Play();
+        else if (time > 481 && time < 482) siren.Play();
     }
 
     private void WarnTiles(int[] renderIndices)
     {
-        // 마스터 클라이언트에게 경고 요청
-        if (PhotonNetwork.IsMasterClient)
-        {
-            ChangeTileColor(renderIndices);
-        }
-        else
-        {
-            photonView.RPC("ChangeTileColor", RpcTarget.MasterClient, renderIndices);
-        }
+        photonView.RPC("ChangeTileColorRPC", RpcTarget.All, renderIndices);
     }
 
     [PunRPC]
-    private void ChangeTileColor(int[] renderIndices)
+    private void ChangeTileColorRPC(int[] renderIndices)
     {
         foreach (int index in renderIndices)
         {
             Renderer tileColor = tiles[index].GetComponent<Renderer>();
             for (int i = 0; i < tileColor.materials.Length; i++)
             {
-                tileColor.materials[i].color = Color.red;
+                tileColor.materials[i].color = new Color(255f / 255f, 50f / 255f, 50f / 255f);
             }
         }
     }
 
     private void DropTiles(int[] renderIndices)
     {
-        // 마스터 클라이언트에게 타일을 떨어뜨리라는 요청
-        if (PhotonNetwork.IsMasterClient)
-        {
-            StartTileFall(renderIndices);
-        }
-        else
-        {
-            photonView.RPC("StartTileFall", RpcTarget.MasterClient, renderIndices);
-        }
+        photonView.RPC("StartTileFallRPC", RpcTarget.All, renderIndices);
     }
 
     [PunRPC]
-    private void StartTileFall(int[] renderIndices)
+    private void StartTileFallRPC(int[] renderIndices)
     {
         foreach (int index in renderIndices)
         {
-            tiles[index].position = Vector3.MoveTowards(tiles[index].position, new Vector3(tiles[index].position.x, -100, tiles[index].position.z), fallSpeed * Time.deltaTime);
+            StartCoroutine(DropTileCoroutine(index));
         }
+    }
+
+    private IEnumerator DropTileCoroutine(int index)
+    {
+        Transform tile = tiles[index];
+        Vector3 startPos = tile.position;
+        Vector3 endPos = new Vector3(startPos.x, -100, startPos.z);
+        float elapsedTime = 0f;
+        float dropDuration = 2f;
+
+        while (elapsedTime < dropDuration)
+        {
+            tile.position = Vector3.Lerp(startPos, endPos, elapsedTime / dropDuration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        tile.position = endPos;
     }
 
     public int ManhattanDistance(int x1, int y1, int x2, int y2)
     {
-        return Math.Abs(x1 - x2) + Math.Abs(y1 - y2);
+        return Mathf.Abs(x1 - x2) + Mathf.Abs(y1 - y2);
     }
 
     public bool Dfs(int[,] mapGrid, (int, int) parentTile, int N)
@@ -150,7 +206,7 @@ public class MapDropper : MonoBehaviourPun
 
         bool[,] visited = new bool[N, N];
         visited[parentTile.Item1, parentTile.Item2] = true;
-        int visitedCount = 1; // 부모 타일은 방문했으므로 1로 시작
+        int visitedCount = 1;
 
         while (stack.Count > 0)
         {
@@ -170,7 +226,6 @@ public class MapDropper : MonoBehaviourPun
             }
         }
 
-        // DFS로 방문한 타일 개수와 현재 남아있는 타일 개수가 일치하는지 확인
         int remainingTiles = 0;
         foreach (var value in mapGrid)
         {
@@ -236,18 +291,18 @@ public class MapDropper : MonoBehaviourPun
 
     public void PlayRounds(int[,] mapGrid, int totalTiles, (int, int) parentTile, int N)
     {
-        int[] rounds = { 300, 200, 100, 1 }; // 각 라운드의 목표 타일 개수
-        int currentTileCount = totalTiles;   // 현재 남아 있는 타일 수
+        int[] rounds = { 300, 200, 100, 1 };
+        int currentTileCount = totalTiles;
 
         for (int roundNum = 0; roundNum < rounds.Length; roundNum++)
         {
             int targetCount = rounds[roundNum];
-            int numToRemove = currentTileCount - targetCount; // 이번 라운드에서 제거할 타일 수
+            int numToRemove = currentTileCount - targetCount;
 
             var (removedTiles, removedTileIndices) = RemoveTileBatch(mapGrid, numToRemove, parentTile, N);
-            targetTiles.Add(removedTileIndices); // 제거대상 리스트 추가
+            targetTiles.Add(removedTileIndices);
 
-            currentTileCount = targetCount; // 남은 타일 수 업데이트
+            currentTileCount = targetCount;
         }
     }
 }

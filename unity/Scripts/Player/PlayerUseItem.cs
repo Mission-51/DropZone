@@ -326,7 +326,7 @@ public class PlayerUseItem : MonoBehaviourPun
             PlayerStatus playerStatus = hit.GetComponent<PlayerStatus>();
             if (playerStatus != null)
             {                  
-                playerStatus.TakeDamage(damage);
+                playerStatus.TakeDamage(damage, photonView.ViewID);
             }
         }
 

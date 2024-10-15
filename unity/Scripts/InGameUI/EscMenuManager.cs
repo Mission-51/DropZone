@@ -42,7 +42,7 @@ public class EscMenuManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.LocalPlayer != null && PhotonNetwork.LocalPlayer.TagObject != null)
         {
             GameObject player = PhotonNetwork.LocalPlayer.TagObject as GameObject;
-            GameManager.instance.SetCanAttackForPlayer(player, false);            
+            GameManager.Instance.SetCanAttackForPlayer(player, false);            
         }
     }
 
@@ -56,7 +56,7 @@ public class EscMenuManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.LocalPlayer != null && PhotonNetwork.LocalPlayer.TagObject != null)
         {
             GameObject player = PhotonNetwork.LocalPlayer.TagObject as GameObject;
-            GameManager.instance.SetCanAttackForPlayer(player, true);            
+            GameManager.Instance.SetCanAttackForPlayer(player, true);            
         }
     }
 
@@ -66,18 +66,21 @@ public class EscMenuManager : MonoBehaviourPunCallbacks
         // PhotonNetwork에서 방 나가기
         if (PhotonNetwork.InRoom)
         {
+            //GameManager.Instance.ResetGameManager();
             PhotonNetwork.LeaveRoom();
         }
         else
         {
             // 방에 없는 경우 바로 로비 씬으로 이동
-            SceneManager.LoadScene("LobbyScene");
+            //GameManager.Instance.ResetGameManager();
+            //SceneManager.LoadScene("LobbyScene");
+
         }
     }
 
     // 방을 성공적으로 떠났을 때 호출되는 콜백
     public override void OnLeftRoom()
     {
-        SceneManager.LoadScene("LobbyScene"); // 로비 씬으로 이동
+        //SceneManager.LoadScene("LobbyScene"); // 로비 씬으로 이동
     }
 }

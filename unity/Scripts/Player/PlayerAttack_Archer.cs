@@ -2,6 +2,7 @@ using Polyperfect.Universal;
 using System.Collections;
 using UnityEngine;
 using Photon.Pun;
+using Photon.Pun.Demo.Asteroids;
 
 public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
 {
@@ -33,6 +34,9 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
     private float currentChargeTime = 0f; // 차징시간 1
 
     public PlayerStatus playerStatus;
+
+    public AudioSource bowPullback; // 당기는 소리
+    public AudioSource bowRelease; // 쏘는 소리
 
     private bool canAttack = true;
 
@@ -93,7 +97,7 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
         {
             Vector3 shootDirection = ArrowPos.forward;
 
-            photonView.RPC("ReleaseAndShootSkill", RpcTarget.All, shootDirection);            
+            photonView.RPC("ReleaseAndShootSkill", RpcTarget.All, shootDirection, currentChargeTime);            
         }
     }
 
@@ -121,6 +125,7 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
     [PunRPC]
     public void StartAttack(Vector3 shootDirection)
     {
+        if (photonView.IsMine) bowRelease.Play();
 
         // 회전 동기화: 전달받은 shootDirection으로 회전
         transform.rotation = Quaternion.LookRotation(shootDirection);
@@ -131,7 +136,6 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
         anim.SetTrigger("doAttack"); // 공격 애니메이션 실행
         fireDelay = 0; // 쿨타임 초기화
 
-
         // 발사체 생성 및 발사
 
         // 소닉붐 이펙트 실행
@@ -141,6 +145,15 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
         }
         GameObject Arrow = Instantiate(ArrowPrefab[currentAttributeIndex], ArrowPos.position, ArrowPos.rotation);
         Rigidbody rb = Arrow.GetComponent<Rigidbody>();
+        Arrow.GetComponent<Arrow>().shooterViewID = photonView.ViewID;
+
+        // WeaponManager를 통해 무기의 데미지를 가져와서 설정
+        int weaponDamage = weaponManager.GetCurrentWeaponDamage();
+        //Arrow.GetComponent<Arrow>().SetDamage(weaponDamage);
+
+        Arrow arrowScript = Arrow.GetComponent<Arrow>();
+        // 일반공격 데미지 설정        
+        arrowScript.damage = weaponDamage;
 
         if (rb != null)
         {
@@ -155,18 +168,16 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
             Physics.IgnoreCollision(playerCollider, arrowCollider);
         }
 
-        // WeaponManager를 통해 무기의 데미지를 가져와서 설정
-        int weaponDamage = weaponManager.GetCurrentWeaponDamage();
-        Arrow.GetComponent<Arrow>().SetDamage(weaponDamage);
-
         Invoke("EndAttack", 0.3f); // 0.3초 후 공격 종료
     }
 
     // 차징 시작
     [PunRPC]
     public void StartCharging()
-    {        
+    {
+        if (photonView.IsMine) bowPullback.Play();
         isCharging = true; // 차징 상태로 전환
+        playerMovement.SetAttackState(true); // 차징 중 일 때 대쉬 불가를 위한 상태 전달    
         anim.SetBool("isCharging", true); // 차징 애니메이션 실행
         currentChargeTime = 0f; // 1
         playerMovement.moveSpeed /= 2f;   // 차징 중 이동속도 감소
@@ -185,8 +196,9 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
 
     // 차징 후 스킬 발사
     [PunRPC]
-    public void ReleaseAndShootSkill(Vector3 shootDirection)
+    public void ReleaseAndShootSkill(Vector3 shootDirection, float charegeTime)
     {
+        if (photonView.IsMine) bowRelease.Play();
         // 회전 동기화: 전달받은 shootDirection으로 회전
         transform.rotation = Quaternion.LookRotation(shootDirection);
 
@@ -195,16 +207,17 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
         anim.SetBool("isCharging", false); // 차징 애니메이션 종료
         playerMovement.moveSpeed *= 2f; // 이동속도 원복
 
-        float chargePercent = Mathf.Clamp01(currentChargeTime / maxChargeTime); // 0과 1 사이 값
+        // 동기화된 chargeTime을 사용하여 데미지 및 속도 계산
+        float chargePercent = Mathf.Clamp01(charegeTime / maxChargeTime); // 0과 1 사이 값
         float skillArrowSpeed = Mathf.Lerp(ArrowSpeed, maxArrowSpeed, chargePercent); // 화살 속도 조정
 
         // 차징 보너스 데미지 계산 (-5, 0, 5, 10, 15 단계)
         int chargeBonus = CalculateDamage(chargePercent);
 
         // WeaponManager를 통해 무기의 데미지를 가져옴
-        int weaponDamage = weaponManager.GetCurrentWeaponDamage();
+        int weaponDamage = weaponManager.GetCurrentWeaponDamage();               
         int finalDamage = weaponDamage + chargeBonus;
-
+        
         // 차징 이펙트 중지
         if (chargingAttributeEffect[currentAttributeIndex] != null)
         {
@@ -225,6 +238,14 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
 
         GameObject skillArrow = Instantiate(skillArrowPrefab[currentAttributeIndex], ArrowPos.position, ArrowPos.rotation);
         Rigidbody rb = skillArrow.GetComponent<Rigidbody>();
+        skillArrow.GetComponent<Arrow>().shooterViewID = photonView.ViewID;
+
+        Arrow arrowScript = skillArrow.GetComponent<Arrow>();
+
+        // 최종 데미지 설정        
+        arrowScript.damage = finalDamage;
+
+        //skillArrow.GetComponent<Arrow>().SetDamage(finalDamage);
 
         if (rb != null)
         {
@@ -239,11 +260,10 @@ public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
             Physics.IgnoreCollision(playerCollider, arrowCollider);
         }
 
-        // 최종 데미지 설정
-        skillArrow.GetComponent<Arrow>().SetDamage(finalDamage);
 
         Invoke("EndAttack", 0.3f); // 0.3초 후 공격 종료
     }
+
     private int CalculateDamage(float chargePercent)
     {
         if (chargePercent >= 1.0f)

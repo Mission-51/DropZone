@@ -61,6 +61,7 @@ public class PlayerMovement : MonoBehaviourPun
             if (transform.position.y < -30f)
             {
                 playerStatus.ApplyStatusEffect(PlayerStatus.StatusEffect.Dead);
+                GameManager.Instance.PlayerEliminated(photonView.ViewID, 2);
             }
         }
         

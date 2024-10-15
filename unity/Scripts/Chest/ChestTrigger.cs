@@ -9,41 +9,64 @@ public class ChestTrigger : MonoBehaviourPunCallbacks
     public ParticleSystem openParticle;
     public GameObject chestBoxUI;
     public bool isChestOpened = false;
+    public AudioSource chestOpenSound;
+    public AudioSource chestCloseSound;
     private bool isPlayerNear;
     private SlotToolTip slotTooltip;
+    private int interactingPlayerActorNumber = -1;
+    private Chest chest;
 
     private void Start()
     {
         slotTooltip = FindObjectOfType<SlotToolTip>();
-    } 
+        chest = GetComponent<Chest>();
+    }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && other.gameObject == PhotonNetwork.LocalPlayer.TagObject as GameObject)
+        if (other.CompareTag("Player"))
         {
-            chestText.gameObject.SetActive(true);
-            isPlayerNear = true;
+            PhotonView playerView = other.GetComponent<PhotonView>();
+            if (playerView != null && playerView.IsMine)
+            {
+                chestText.gameObject.SetActive(true);
+                isPlayerNear = true;
+                Debug.Log($"Player {playerView.Owner.NickName} entered chest {chest.chestId} trigger");
+            }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player") && other.gameObject == PhotonNetwork.LocalPlayer.TagObject as GameObject)
+        if (other.CompareTag("Player"))
         {
-            CloseChestAndResetUI();
-            isPlayerNear = false;
+            if (isChestOpened) chestCloseSound.Play();
+            PhotonView playerView = other.GetComponent<PhotonView>();
+            if (playerView != null && playerView.IsMine)
+            {
+                photonView.RPC("CloseChestAndResetUIRPC", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber, chest.chestId);
+                isPlayerNear = false;
+                Debug.Log($"Player {playerView.Owner.NickName} exited chest {chest.chestId} trigger");
+            }
         }
     }
 
-    private void CloseChestAndResetUI()
+    [PunRPC]
+    private void CloseChestAndResetUIRPC(int actorNumber, int chestId)
     {
-        chestText.gameObject.SetActive(false);
-        chestBoxUI.SetActive(false);
-        slotTooltip.HideToolTip();
-
-        if (isChestOpened)
+        if (this.chest.chestId == chestId)
         {
-            photonView.RPC("ToggleChest", RpcTarget.All, false, PhotonNetwork.LocalPlayer.ActorNumber);
+            chestText.gameObject.SetActive(false);
+            chestBoxUI.SetActive(false);
+            if (slotTooltip != null)
+            {
+                slotTooltip.HideToolTip();
+            }
+        }
+
+        if (isChestOpened && this.chest.chestId == chestId)
+        {
+            ToggleChest(false, actorNumber);
         }
     }
 
@@ -53,6 +76,15 @@ public class ChestTrigger : MonoBehaviourPunCallbacks
         isChestOpened = open;
         chestTopPos.rotation = open ? Quaternion.Euler(0, 180, 0) : Quaternion.Euler(45, 180, 0);
 
+        if (open)
+        {
+            interactingPlayerActorNumber = actorNumber;
+        }
+        else
+        {
+            interactingPlayerActorNumber = -1;
+        }
+
         if (PhotonNetwork.LocalPlayer.ActorNumber == actorNumber)
         {
             chestBoxUI.SetActive(open);
@@ -60,13 +92,13 @@ public class ChestTrigger : MonoBehaviourPunCallbacks
 
             if (open)
             {
-                Debug.Log("상자를 열었습니다. 공격이 제한됩니다.");
-                GameManager.instance.SetCanAttackForPlayer(PhotonNetwork.LocalPlayer.TagObject as GameObject, false);
+                Debug.Log($"Player {PhotonNetwork.LocalPlayer.NickName} opened chest {chest.chestId}. Attack restricted.");
+                GameManager.Instance.SetCanAttackForPlayer(PhotonNetwork.LocalPlayer.TagObject as GameObject, false);
             }
             else
             {
-                Debug.Log("상자를 닫았습니다. 공격이 재개됩니다.");
-                GameManager.instance.SetCanAttackForPlayer(PhotonNetwork.LocalPlayer.TagObject as GameObject, true);
+                Debug.Log($"Player {PhotonNetwork.LocalPlayer.NickName} closed chest {chest.chestId}. Attack enabled.");
+                GameManager.Instance.SetCanAttackForPlayer(PhotonNetwork.LocalPlayer.TagObject as GameObject, true);
                 if (slotTooltip != null)
                 {
                     slotTooltip.HideToolTip();
@@ -89,7 +121,22 @@ public class ChestTrigger : MonoBehaviourPunCallbacks
     {
         if (isPlayerNear && Input.GetKeyDown(KeyCode.F))
         {
-            photonView.RPC("ToggleChest", RpcTarget.All, !isChestOpened, PhotonNetwork.LocalPlayer.ActorNumber);
+            if (isChestOpened) chestCloseSound.Play();
+            else if (!isChestOpened) chestOpenSound.Play();
+            Debug.Log($"F key pressed by player {PhotonNetwork.LocalPlayer.NickName} for chest {chest.chestId}. Chest open state: {isChestOpened}, Interacting player: {interactingPlayerActorNumber}");
+            if (interactingPlayerActorNumber == -1 || interactingPlayerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
+            {
+                photonView.RPC("ToggleChest", RpcTarget.All, !isChestOpened, PhotonNetwork.LocalPlayer.ActorNumber);
+            }
+            else
+            {
+                Debug.Log($"Cannot interact. Chest {chest.chestId} is being used by player {interactingPlayerActorNumber}");
+            }
+        }
+
+        if (!isChestOpened)
+        {
+            slotTooltip.HideToolTip();
         }
     }
 }
