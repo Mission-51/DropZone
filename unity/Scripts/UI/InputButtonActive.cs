@@ -12,7 +12,9 @@ public class InputButtonActive : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public Color inactiveColor = new Color(1, 1, 1, 0.5f); // 비활성화 색상
 
     public Vector3 normalScale = new Vector3(1f, 1f, 1f);  // 버튼의 기본 크기
-    public Vector3 enlargedScale = new Vector3(1.2f, 1.2f, 1.2f);  // 버튼의 확대된 크기
+    public Color hoverColor = Color.green; // 마우스가 버튼 위에 있을 때 색상
+
+    private Color originalColor; // 원래 색상을 저장할 변수
 
     void Start()
     {
@@ -51,7 +53,7 @@ public class InputButtonActive : MonoBehaviour, IPointerEnterHandler, IPointerEx
     {
         if (button.interactable)
         {
-            button.transform.localScale = enlargedScale; // 크기 확대
+            button.image.color = hoverColor; // 마우스 오버 시 색상 변경
         }
     }
 
@@ -60,7 +62,7 @@ public class InputButtonActive : MonoBehaviour, IPointerEnterHandler, IPointerEx
     {
         if (button.interactable)
         {
-            button.transform.localScale = normalScale; // 크기 원래대로
+            button.image.color = button.interactable ? activeColor : inactiveColor; // 크기 원래대로
         }
     }
 }

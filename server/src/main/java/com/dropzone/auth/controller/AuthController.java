@@ -108,10 +108,15 @@ public class AuthController {
 
         try {
             if (jwtTokenProvider.validateToken(accessToken)) {
-                // 토큰이 유효하다면 블랙리스트에 추가하여 로그아웃 처리
+                // 토큰에서 사용자 이메일 추출
+                String email = jwtTokenProvider.getEmailFromToken(accessToken);
+
+                // AuthService에서 로그아웃 처리
+                //authService.logout(email);
+
+                // JWT 토큰 무효화 (블랙리스트 처리 등)
                 jwtTokenProvider.invalidateToken(accessToken);
                 response.put("message", "로그아웃 성공");
-
                 log.info("로그아웃 성공: accessToken={}", accessToken);
 
                 return ResponseEntity.ok(response);

@@ -110,7 +110,7 @@ public class RankPointCalculator {
                         rankPoint = -6;
                         break;
                     case 6:
-                        rankPoint = -10;
+                        rankPoint = 0;
                         break;
                     // 예외 처리
                     default:
@@ -119,7 +119,7 @@ public class RankPointCalculator {
                 }
                 break;
             default:
-                rankPoint = 0; // 지원하지 않는 플레이어 수에 대한 처리
+                rankPoint = 10; // 지원하지 않는 플레이어 수에 대한 처리
                 break;
         }
         return rankPoint;

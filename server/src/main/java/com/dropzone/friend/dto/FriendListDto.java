@@ -1,5 +1,6 @@
 package com.dropzone.friend.dto;
 
+import com.dropzone.user.entity.UserEntity;
 import lombok.*;
 
 @Getter
@@ -8,7 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FriendListDto {
-    private Long friendShipId;
+    private int friendShipId;
+    private int friendId;
     private String friendEmail;
-    private String friendNickname;
+    private String friendNickName;
 }

@@ -27,9 +27,6 @@ public class UserStatisticsEntity {
     @Column(name = "total_kills", nullable = false)
     private int totalKills = 0;
 
-    @Column(name = "total_damage", nullable = false)
-    private int totalDamage = 0;
-
     @Column(name = "total_playtime", nullable = false)
     private Time totalPlaytime = Time.valueOf("00:00:00");
 

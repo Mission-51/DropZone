@@ -1,26 +1,28 @@
 using UnityEngine;
 using static Bullet;
+using Photon.Pun;
 
-public class Arrow : MonoBehaviour
+public class Arrow : MonoBehaviourPun
 {
-    public int damage;  // ±âº» µ¥¹ÌÁö
-    public float lifeTime = 1f;  // È­»ìÀÌ ÆÄ±«µÇ±â±îÁöÀÇ ½Ã°£
-    public GameObject hitEffectPrefab;  // Ãæµ¹ ½Ã ³ªÅ¸³¯ ÀÌÆåÆ® ÇÁ¸®ÆÕ
-    public float effectOffset = -1f; // ÀÌÆåÆ® À§Ä¡ Á¶Á¤À» À§ÇÑ ¿ÀÇÁ¼Â
-    
+    public int damage;  // ê¸°ë³¸ ë°ë¯¸ì§€
+    public float lifeTime;  // í™”ì‚´ì´ íŒŒê´´ë˜ê¸°ê¹Œì§€ì˜ ì‹œê°„
+    public GameObject hitEffectPrefab;  // ì¶©ëŒ ì‹œ ë‚˜íƒ€ë‚  ì´í™íŠ¸ í”„ë¦¬íŒ¹
+    public float effectOffset = -1f; // ì´í™íŠ¸ ìœ„ì¹˜ ì¡°ì •ì„ ìœ„í•œ ì˜¤í”„ì…‹
+    public int shooterViewID;
+
     public enum ArrowType
     {
         Normal,
-        Ice,        // ½½·Î¿ì
-        Gunpowder,   // Æø¹ßÅº
+        Ice,        // ìŠ¬ë¡œìš°
+        Gunpowder,   // í­ë°œíƒ„
         Gear
     }
 
     public ArrowType arrowType;
 
     private void Start()
-    {
-        // ÀÏÁ¤ ½Ã°£ÀÌ Áö³ª¸é È­»ìÀ» ÆÄ±«
+    {        
+        // ì¼ì • ì‹œê°„ì´ ì§€ë‚˜ë©´ í™”ì‚´ì„ íŒŒê´´
         Destroy(gameObject, lifeTime);
     }
 
@@ -29,22 +31,24 @@ public class Arrow : MonoBehaviour
         damage = newDamage;
     }
 
-    // Æ®¸®°Å Ãæµ¹ Ã³¸®
+    // íŠ¸ë¦¬ê±° ì¶©ëŒ ì²˜ë¦¬
     private void OnTriggerEnter(Collider other)
     {
-        
 
-        // Ãæµ¹ÇÑ ¿ÀºêÁ§Æ®°¡ ÇÃ·¹ÀÌ¾îÀÏ ¶§ µ¥¹ÌÁö¸¦ Ã³¸®
-        var player = other.GetComponent<PlayerStatus>();
-        if (player != null)
+
+        // ì¶©ëŒí•œ ì˜¤ë¸Œì íŠ¸ê°€ í”Œë ˆì´ì–´ì¼ ë•Œ ë°ë¯¸ì§€ë¥¼ ì²˜ë¦¬
+        PlayerStatus enemyStatus = other.gameObject.GetComponent<PlayerStatus>();
+        if (enemyStatus != null)
         {
-            player.TakeDamage(damage); // ÇÃ·¹ÀÌ¾îÀÇ Ã¼·Â¿¡¼­ µ¥¹ÌÁö¸¦ Â÷°¨
+            // shooterViewIDë¥¼ ì‚¬ìš©í•˜ì—¬ ë°ë¯¸ì§€ë¥¼ ì ìš©            
+            enemyStatus.TakeDamage(damage, shooterViewID);
+            Debug.Log($"í™”ì‚´ ë°ë¯¸ì§€ {damage} ì ìš©ë¨");
         }
 
-        // arrow¼Ó¼º¿¡ µû¶ó È¿°ú Àû¿ëÇÏ±â
+        // arrowì†ì„±ì— ë”°ë¼ íš¨ê³¼ ì ìš©í•˜ê¸°
         if (arrowType == ArrowType.Ice && other.gameObject.CompareTag("Player"))
         {
-            // ½½·Î¿ì È¿°ú Àû¿ë
+            // ìŠ¬ë¡œìš° íš¨ê³¼ ì ìš©
             PlayerStatus targetStatus = other.gameObject.GetComponent<PlayerStatus>();
             if (targetStatus != null)
             {
@@ -61,17 +65,17 @@ public class Arrow : MonoBehaviour
 
 
 
-        // Ãæµ¹ ÀÌÆåÆ®¸¦ »ı¼º
+        // ì¶©ëŒ ì´í™íŠ¸ë¥¼ ìƒì„±
         if (hitEffectPrefab != null)
         {
             Vector3 effectPosition = transform.position + transform.forward * effectOffset;
-            GameObject collisionEffect = Instantiate(hitEffectPrefab, effectPosition, Quaternion.identity);  // ¿ÀÇÁ¼Â À§Ä¡¿¡ ÀÌÆåÆ® »ı¼º
+            GameObject collisionEffect = Instantiate(hitEffectPrefab, effectPosition, Quaternion.identity);  // ì˜¤í”„ì…‹ ìœ„ì¹˜ì— ì´í™íŠ¸ ìƒì„±
 
             Destroy(collisionEffect, lifeTime);
             
         }
 
-        // È­»ìÀÌ ÇÃ·¹ÀÌ¾î³ª Àû, º®¿¡ ´êÀ¸¸é ÆÄ±«
+        // í™”ì‚´ì´ í”Œë ˆì´ì–´ë‚˜ ì , ë²½ì— ë‹¿ìœ¼ë©´ íŒŒê´´
         Destroy(gameObject);
     }
 }

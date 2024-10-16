@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-
     private final UserRepository userRepository;
     private final Set<String> authenticatedUsers = ConcurrentHashMap.newKeySet();
     private final UserStatisticsRepository userStatisticsRepository;
@@ -65,7 +64,6 @@ public class UserServiceImpl implements UserService {
         userStatisticsEntity.setUserId(userEntity.getUserId());
         userStatisticsEntity.setRankingPoints(100); // 초기값 100
         userStatisticsEntity.setTotalKills(0);
-        userStatisticsEntity.setTotalDamage(0);
         userStatisticsEntity.setTotalPlaytime(Time.valueOf("00:00:00")); // 초기 플레이 시간 0
         userStatisticsEntity.setTotalGames(0);
         userStatisticsEntity.setTotalWins(0);
@@ -109,13 +107,14 @@ public class UserServiceImpl implements UserService {
         return UserSearchDTO.toUserSearchDTO(userEntity);
     }
 
-    @Transactional
+    // 닉네임 변경
     @Override
-    public void updateUser(int existingId, UserDTO updateUserDTO) {
+    @Transactional
+    public void updateUserNickName(int existingId, UserDTO updateUserDTO) {
         Optional<UserEntity> findUserEntity = userRepository.findById(existingId);
         if (findUserEntity.isPresent()) {
             UserEntity updateUserEntity = findUserEntity.get();
-            userRepository.save(updateUserDTOFields(updateUserEntity, updateUserDTO));
+            userRepository.save(updateUserDTONickNameField(updateUserEntity, updateUserDTO));
         } else {
             throw new EntityNotFoundException("User with id " + existingId + " not found");
         }
@@ -123,12 +122,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserEntity updateUserDTOFields(UserEntity updateUserEntity, UserDTO updateUserDTO) {
+    public UserEntity updateUserDTONickNameField(UserEntity updateUserEntity, UserDTO updateUserDTO) {
         if (updateUserDTO.getUserNickname() != null) {
             updateUserEntity.setUserNickname(updateUserDTO.getUserNickname());
         }
-        if(updateUserDTO.getUserPassword() != null) {
-            updateUserEntity.setUserPassword(updateUserDTO.getUserPassword());
+        return updateUserEntity;
+    }
+
+    // 비밀번호 변경
+    @Override
+    @Transactional
+    public void updateUserPassword(int existingId, UserDTO updateUserDTO) {
+        Optional<UserEntity> findUserEntity = userRepository.findById(existingId);
+        if (findUserEntity.isPresent()) {
+            UserEntity updateUserEntity = findUserEntity.get();
+            userRepository.save(updateUserDTOPasswordField(updateUserEntity, updateUserDTO));
+        } else {
+            throw  new EntityNotFoundException("User with id " + existingId + " not found");
+        }
+    }
+
+    @Override
+    public UserEntity updateUserDTOPasswordField(UserEntity updateUserEntity, UserDTO updateUserDTO) {
+        if (updateUserDTO.getUserPassword() != null) {
+            String updatePassword = passwordEncoder.encode(updateUserDTO.getUserPassword());
+            updateUserEntity.setUserPassword(updatePassword);
         }
         return updateUserEntity;
     }

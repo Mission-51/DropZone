@@ -3,6 +3,7 @@ package com.dropzone.user.service;
 import com.dropzone.user.dto.UserDTO;
 import com.dropzone.user.dto.UserSearchDTO;
 import com.dropzone.user.entity.UserEntity;
+import org.apache.catalina.User;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -21,11 +22,17 @@ public interface UserService {
     // 회원가입 메소드 (UserDTO를 받아 회원을 등록)
     public void signUp(UserDTO userDTO);
 
-    // 회원 정보 수정 메소드 (기존 사용자 ID와 새로운 정보를 받아 회원 정보 수정)
-    public void updateUser(int existingId, UserDTO updateUserDTO);
+    // 회원 닉네임 수정 메소드 (기존 사용자 ID와 새로운 정보를 받아 회원 정보 수정)
+    public void updateUserNickName(int existingId, UserDTO updateUserDTO);
+    
+    // 회원 닉네임 수정 시, UserDTO의 필드를 UserEntity로 업데이트 (실제 필드 값을 비교 및 업데이트)
+    public UserEntity updateUserDTONickNameField(UserEntity updateUserEntity, UserDTO updateUserDTO);
 
-    // 회원 정보 수정 시, UserDTO의 필드를 UserEntity로 업데이트 (실제 필드 값을 비교 및 업데이트)
-    public UserEntity updateUserDTOFields(UserEntity updateUserEntity, UserDTO updateUserDTO);
+    // 회원 비밀번호 수정 메소드
+    public void updateUserPassword(int existingId, UserDTO updateUserDTO);
+    
+    // 회원 비밀번호 수정 시, UserDTO의 필드를 UserEntity로 업데이트 (실제 필드 값을 비교 및 업데이트)
+    public UserEntity updateUserDTOPasswordField(UserEntity updateUserEntity, UserDTO updateUserDTO);
 
     // 회원 삭제 메소드 (ID로 회원을 삭제)
     public void deleteUser(int userId);

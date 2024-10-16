@@ -1,36 +1,43 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviourPun
 {
     public PlayerMovement playerMovement;
-    public PlayerStatus playerStatus; // PlayerStatus ÂüÁ¶
-    public IAttack playerAttack; // °øÅë ÀÎÅÍÆäÀÌ½º·Î °ø°İ ½ºÅ©¸³Æ® ÂüÁ¶
-    public WeaponManager weaponManager; // WeaponManager ÂüÁ¶    
+    public PlayerStatus playerStatus;
+    public IAttack playerAttack;
+    public WeaponManager weaponManager;
 
     void Awake()
     {
-        playerAttack = GetComponent<IAttack>(); // µ¿ÀûÀ¸·Î °ø°İ ½ºÅ©¸³Æ®¸¦ ÇÒ´ç
-        // PhotonView°¡ ÇÊ¿ä: PhotonView¸¦ ÇÒ´çÇÏ¿© ³×Æ®¿öÅ© »ó¿¡¼­ ÀÌ ÇÃ·¹ÀÌ¾î°¡ ³» °ÍÀÎÁö È®ÀÎÇÏ´Â ¿ëµµ·Î »ç¿ë
+        playerAttack = GetComponent<IAttack>();
     }
 
     void Update()
     {
-        //ÇÃ·¹ÀÌ¾î°¡ Á×Àº »óÅÂÀÏ ¶§´Â ¾Æ¹« µ¿ÀÛµµ ÇÏÁö ¾ÊÀ½
+        // í”Œë ˆì´ì–´ê°€ ì£½ì—ˆë‹¤ë©´ ë” ì´ìƒ ì—…ë°ì´íŠ¸í•˜ì§€ ì•ŠìŒ
         if (playerStatus.currentStatus == PlayerStatus.StatusEffect.Dead)
         {
             return;
         }
 
-        // ÀÌ ºÎºĞ¿¡ PhotonView.IsMine Ã¼Å©°¡ ÇÊ¿äÇÔ: ·ÎÄÃ ÇÃ·¹ÀÌ¾î°¡ ¾Æ´Ò °æ¿ì ÀÌµ¿°ú °ø°İ µîÀÇ ÀÔ·ÂÀ» ¹ŞÁö ¾Êµµ·Ï Ã³¸®
-        playerMovement.GetInput(); // ÀÌµ¿ ÀÔ·Â ¹Ş±â
-        playerMovement.Move(); // ÀÌµ¿        
+        // í˜„ì¬ í´ë¼ì´ì–¸íŠ¸ì˜ í”Œë ˆì´ì–´ì¸ì§€ í™•ì¸
+        if (photonView.IsMine)
+        {
+            playerMovement.GetInput(); // ì…ë ¥ì„ ë°›ìŒ
+            playerMovement.Move(); // ì›€ì§ì„ ì²˜ë¦¬
 
-        // °ø°İÀº ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î RPC·Î Àü¼Û
-        // ÀÌ ºÎºĞ¿¡ PhotonView¸¦ ÅëÇØ RPC È£ÃâÀÌ ÇÊ¿äÇÔ
-        playerAttack.GetAttackInput(Input.GetButton("Fire1")); // °ø°İ ÀÔ·Â
-
-        // ¹«±â º¯°æµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î RPC·Î Àü¼Û
-        // ¹«±â º¯°æ¿¡ ´ëÇÑ Ã³¸®µµ PhotonView¸¦ ÅëÇØ µ¿±âÈ­°¡ ÇÊ¿äÇÔ
-        weaponManager.HandleWeaponSwitch(); // ¹«±â º¯°æ ¹× ÀÌÆåÆ® º¯°æ Ã³¸®       
+            // ê³µê²© ì…ë ¥ ì²˜ë¦¬
+            if (Input.GetButton("Fire1"))
+            {                
+                PerformAttack();
+            }
+        }
+    }
+        
+    public void PerformAttack()
+    {
+        // ê³µê²© ì…ë ¥ì„ ì²˜ë¦¬
+        playerAttack.GetAttackInput(true);
     }
 }

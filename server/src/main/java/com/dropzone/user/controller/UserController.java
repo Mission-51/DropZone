@@ -3,7 +3,8 @@ package com.dropzone.user.controller;
 import com.dropzone.auth.jwt.JwtTokenProvider;
 import com.dropzone.user.dto.UserDTO;
 import com.dropzone.user.dto.UserSearchDTO;
-import com.dropzone.user.dto.UserUpdateDTO;
+import com.dropzone.user.dto.UserUpdateNickNameDTO;
+import com.dropzone.user.dto.UserUpdatePasswordDTO;
 import com.dropzone.user.service.EmailService;
 import com.dropzone.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,10 +16,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -219,7 +218,7 @@ public class UserController {
     @GetMapping("/search/user_nickname/{user_nickname}")
     public ResponseEntity<?> searchByNickname(
             @Parameter(description = "Nickname", required = true, example = "bluebird")
-            @PathVariable("nickname") String userNickname) {
+            @PathVariable("user_nickname") String userNickname) {
         log.info("닉네임으로 회원 검색 요청: {}", userNickname);
         try {
             UserSearchDTO user = userService.searchByNickname(userNickname);
@@ -237,14 +236,24 @@ public class UserController {
         }
     }
 
-    // 회원 정보 수정
-    @Operation(summary = "회원 정보 수정 API", description = "회원 정보 수정")
-    @PatchMapping(value = "/update")
-    public ResponseEntity<?> updateUser(
+    // 회원 닉네임 수정
+    @Operation(summary = "회원 닉네임 수정 API", description = "회원 닉네임 수정")
+    @PatchMapping(value = "/update/nickName")
+    public ResponseEntity<?> updateUserNickName(
             @RequestHeader("Authorization") String token,
-            @RequestBody UserUpdateDTO userUpdateDTO
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "닉네임",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    example = "{\"userNickname\": \"BTS\"}"
+                            )
+                    )
+            )
+            @RequestBody UserUpdateNickNameDTO userUpdateNickNameDTO
             ) {
-        log.info("회원 정보 수정 요청: email={}");
+        log.info("회원 닉네임 수정 요청: nickName={}");
         try {
             // JWT에서 이메일 추출
             String jwtToken = token.replace("Bearer ", "");
@@ -252,32 +261,75 @@ public class UserController {
 
             // 이메일로 기존 사용자 조회
             UserDTO existingUserDTO = userService.searchByEmail(userEmail);
+
             if (existingUserDTO == null) {
                 log.warn("회원 정보 수정 실패: 인증되지 않은 사용자");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다");
             }
 
             // 수정 가능한 필드만 업데이트
-            if (userUpdateDTO.getUserPassword() != null && !userUpdateDTO.getUserPassword().isEmpty()) {
-                existingUserDTO.setUserPassword(userUpdateDTO.getUserPassword());
-            }
-            if (userUpdateDTO.getUserNickname() != null && !userUpdateDTO.getUserNickname().isEmpty()) {
-                existingUserDTO.setUserNickname(userUpdateDTO.getUserNickname());
-            }
-            if (userUpdateDTO.getUserProfileImage() != null && !userUpdateDTO.getUserProfileImage().isEmpty()) {
-                existingUserDTO.setUserProfileImage(userUpdateDTO.getUserProfileImage());
+            if (userUpdateNickNameDTO.getUserNickname() != null) {
+                existingUserDTO.setUserNickname(userUpdateNickNameDTO.getUserNickname());
             }
 
             // 수정된 사용자 정보 저장
-            userService.updateUser(existingUserDTO.getUserId(), existingUserDTO);
+            userService.updateUserNickName(existingUserDTO.getUserId(), existingUserDTO);
             log.info("회원 정보 수정 성공: email={}", userEmail);
-            return ResponseEntity.ok("회원 정보 수정에 성공했습니다");
+            return ResponseEntity.ok("회원 닉네임 수정에 성공했습니다");
 
         } catch (Exception e) {
             log.error("회원 정보 수정 중 오류 발생: email={}", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 입니다");
         }
     }
+
+    // 회원 비밀번호 수정
+    @Operation(summary = "회원 비밀번호 수정 API", description = "회원 비밀번호 수정")
+    @PatchMapping(value = "/update/password")
+    public ResponseEntity<?> updateUserPassword(
+            @RequestHeader("Authorization") String token,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "비밀번호",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    example = "{\"userPassword\": \"1q2w3e4r!\"}"
+                            )
+                    )
+            )
+            @RequestBody UserUpdatePasswordDTO userUpdatePasswordDTO
+            ) {
+        log.info("회원 비밀번호 수정 요청: password={}");
+        try {
+            // JWT에서 이메일 추출
+            String jwtToken = token.replace("Bearer ", "");
+            String userEmail = JwtTokenProvider.getEmailFromToken(jwtToken);
+
+            // 이메일로 기존 사용자 조회
+            UserDTO existingUserDTO = userService.searchByEmail(userEmail);
+
+            if (existingUserDTO == null) {
+                log.warn("회원 정보 수정 실패: 인증되지 않은 사용자");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다");
+            }
+
+            // 수정 가능한 필드만 업데이트
+            if (userUpdatePasswordDTO.getUserPassword() != null) {
+                existingUserDTO.setUserPassword(userUpdatePasswordDTO.getUserPassword());
+            }
+
+            // 수정된 사용자 정보 저장
+            userService.updateUserPassword(existingUserDTO.getUserId(), existingUserDTO);
+            log.info("회원 정보 수정 성공: email={}", userEmail);
+            return ResponseEntity.ok("회원 비밀번호 수정에 성공했습니다");
+
+        } catch (Exception e) {
+            log.error("회원 정보 수정 중 오류 발생: email={}", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 입니다");
+        }
+    }
+
 
     // 회원 탈퇴
     @Operation(summary = "회원 탈퇴 API", description = "회원 탈퇴")

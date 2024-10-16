@@ -2,36 +2,37 @@ using Opsive.UltimateCharacterController.Traits;
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI; // UI¸¦ »ç¿ëÇÏ±â À§ÇÑ ³×ÀÓ½ºÆäÀÌ½º
+using UnityEngine.UI; // UIë¥¼ ì‚¬ìš©í•˜ê¸° ìœ„í•œ ë„¤ì„ìŠ¤í˜ì´ìŠ¤
+using Photon.Pun; // Photon ë„¤ì„ìŠ¤í˜ì´ìŠ¤ ì¶”ê°€
 
-public class PlayerStatus : MonoBehaviour
+public class PlayerStatus : MonoBehaviourPunCallbacks
 {
     public int maxHP = 100;
     public int currentHP;
     private Animator anim;
 
-    private Collider[] colliders; // ÇÃ·¹ÀÌ¾î¿¡ ¿¬°áµÈ ¸ğµç Äİ¶óÀÌ´õ¸¦ °ü¸®
-    private Coroutine statusEffectCoroutine; // ÇöÀç ½ÇÇà ÁßÀÎ »óÅÂÀÌ»ó ÄÚ·çÆ¾
+    private Collider[] colliders; // í”Œë ˆì´ì–´ì— ì—°ê²°ëœ ëª¨ë“  ì½œë¼ì´ë”ë¥¼ ê´€ë¦¬
+    private Coroutine statusEffectCoroutine; // í˜„ì¬ ì‹¤í–‰ ì¤‘ì¸ ìƒíƒœì´ìƒ ì½”ë£¨í‹´
 
-    public GameObject stunEffect; // ½ºÅÏ ÀÌÆåÆ®
-    public GameObject slowEffect; // ½½·Î¿ì ÀÌÆåÆ®
+    public GameObject stunEffect; // ìŠ¤í„´ ì´í™íŠ¸
+    public GameObject slowEffect; // ìŠ¬ë¡œìš° ì´í™íŠ¸
 
-    public Image hpBarImage;  // HP ¹Ù UI ÀÌ¹ÌÁö
+    public Image hpBarImage;  // HP ë°” UI ì´ë¯¸ì§€
 
     public enum StatusEffect
     {
-        None,         // Á¤»ó »óÅÂ
-        Dead,         // »ç¸Á »óÅÂ
-        Stunned,      // ±âÀı »óÅÂ
-        Immobilized,  // ¼Ó¹Ú »óÅÂ
-        Slow1,        // ½½·Î¿ì1 »óÅÂ (ÀÌµ¿ ¼Óµµ °¨¼Ò, ´ë½¬ ºÒ°¡)
-        Slow2,        // ½½·Î¿ì2 »óÅÂ (ÀÌµ¿ ¼Óµµ °¨¼Ò)
-        Knockback,    // ³Ë¹é »óÅÂ
-        SuperArmor,   // ½´ÆÛ¾Æ¸Ó »óÅÂ (Boxer ½ºÅ³)
-        blood         // Ã¼·Â È¸º¹ ¼Ó¼º ¹«±â ÀåÂø »óÅÂ
+        None,         // ì •ìƒ ìƒíƒœ
+        Dead,         // ì‚¬ë§ ìƒíƒœ
+        Stunned,      // ê¸°ì ˆ ìƒíƒœ
+        Immobilized,  // ì†ë°• ìƒíƒœ
+        Slow1,        // ìŠ¬ë¡œìš°1 ìƒíƒœ
+        Slow2,        // ìŠ¬ë¡œìš°2 ìƒíƒœ
+        Knockback,    // ë„‰ë°± ìƒíƒœ
+        SuperArmor,   // ìŠˆí¼ì•„ë¨¸ ìƒíƒœ
+        blood         // ì²´ë ¥ íšŒë³µ ì†ì„± ë¬´ê¸° ì¥ì°© ìƒíƒœ
     }
 
-    public StatusEffect currentStatus = StatusEffect.None;  // ±âº» »óÅÂ´Â None
+    public StatusEffect currentStatus = StatusEffect.None;  // ê¸°ë³¸ ìƒíƒœëŠ” None
 
     private PlayerMovement playerMovement;
     private Rigidbody rb;
@@ -39,48 +40,51 @@ public class PlayerStatus : MonoBehaviour
     void Awake()
     {
         anim = GetComponent<Animator>();
-        currentHP = maxHP;  // HP ÃÊ±âÈ­
+        currentHP = maxHP;  // HP ì´ˆê¸°í™”
         playerMovement = GetComponent<PlayerMovement>();
         rb = GetComponent<Rigidbody>();
 
-        // ÇÃ·¹ÀÌ¾î ¿ÀºêÁ§Æ®¿¡ ºÙ¾î ÀÖ´Â ¸ğµç Äİ¶óÀÌ´õ¸¦ °¡Á®¿È
         colliders = GetComponentsInChildren<Collider>();
 
-        // HP ÀÌ¹ÌÁö ÃÊ±âÈ­
         if (hpBarImage != null)
         {
             UpdateHPUI();
         }
-
-        // PhotonView°¡ ÇÊ¿ä: »óÅÂ Á¤º¸(¿¹: HP, »óÅÂÀÌ»ó µî)¸¦ ³×Æ®¿öÅ© »ó¿¡¼­ µ¿±âÈ­ÇØ¾ß ÇÔ
     }
 
     void Update()
     {
-        HandleStatusEffects();  // »óÅÂÀÌ»ó Ã³¸®
+        HandleStatusEffects();  // ìƒíƒœì´ìƒ ì²˜ë¦¬
     }
 
-    // µ¥¹ÌÁö Ã³¸® ¹× »ç¸Á Ã³¸®
-    public void TakeDamage(int damage)
+    //[PunRPC]
+    [PunRPC]
+    public void TakeDamage(int damage, int killerViewID)
     {
-        if (currentStatus == StatusEffect.Dead) return;  // ÀÌ¹Ì Á×Àº »óÅÂ¸é µ¥¹ÌÁö Ã³¸® ¾ÈÇÔ
+        if (!PhotonNetwork.IsMasterClient) return;  // ë§ˆìŠ¤í„° í´ë¼ì´ì–¸íŠ¸ì—ì„œë§Œ ì‹¤í–‰
+
+        if (currentStatus == StatusEffect.Dead) return;
 
         currentHP -= damage;
-        currentHP = Mathf.Clamp(currentHP, 0, maxHP); // HP°¡ À½¼ö·Î ³»·Á°¡Áö ¾Ê°Ô ¼³Á¤
-        Debug.Log("Player HP: " + currentHP);
-
-        // HP°¡ º¯°æµÇ¸é HP ¹Ù ¾÷µ¥ÀÌÆ®
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
         UpdateHPUI();
+
+        photonView.RPC("UpdateHealth", RpcTarget.All, currentHP);        
 
         if (currentHP <= 0)
         {
             ApplyStatusEffect(StatusEffect.Dead);
-
-            // µ¥¹ÌÁö³ª »ç¸Á »óÅÂµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î RPC°¡ ÇÊ¿ä
+            GameManager.Instance.photonView.RPC("PlayerEliminated", RpcTarget.All, photonView.ViewID, killerViewID);
         }
     }
 
-    // »óÅÂÀÌ»ó ÀÌÆåÆ®¸¦ °ü¸®ÇÏ´Â ÇÔ¼ö (Áßº¹ ÄÚµå Á¤¸®)
+    [PunRPC]
+    public void UpdateHealth(int newHealth)
+    {
+        currentHP = newHealth;
+        UpdateHPUI();
+    }
+
     private void ManageStatusEffect(StatusEffect status, bool isActive)
     {
         switch (status)
@@ -88,7 +92,8 @@ public class PlayerStatus : MonoBehaviour
             case StatusEffect.Stunned:
                 if (stunEffect != null)
                 {
-                    stunEffect.SetActive(isActive); // ½ºÅÏ ÀÌÆåÆ® È°¼ºÈ­/ºñÈ°¼ºÈ­
+                    stunEffect.SetActive(isActive);
+                    photonView.RPC("RPCManageStunEffect", RpcTarget.Others, isActive);
                 }
                 break;
 
@@ -96,188 +101,216 @@ public class PlayerStatus : MonoBehaviour
             case StatusEffect.Slow2:
                 if (slowEffect != null)
                 {
-                    slowEffect.SetActive(isActive); // ½½·Î¿ì ÀÌÆåÆ® È°¼ºÈ­/ºñÈ°¼ºÈ­
+                    slowEffect.SetActive(isActive);
+                    photonView.RPC("RPCManageSlowEffect", RpcTarget.Others, isActive);
                 }
                 break;
         }
-
-        // »óÅÂÀÌ»ó ÀÌÆåÆ®µµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡¼­ µ¿±âÈ­µÇ¾î¾ß ÇÏ¹Ç·Î, PhotonView¿Í RPC°¡ ÇÊ¿ä
     }
 
-    // »óÅÂÀÌ»ó Ã³¸®
+    [PunRPC]
+    public void RPCManageStunEffect(bool isActive)
+    {
+        if (stunEffect != null)
+        {
+            stunEffect.SetActive(isActive);
+        }
+    }
+
+    [PunRPC]
+    public void RPCManageSlowEffect(bool isActive)
+    {
+        if (slowEffect != null)
+        {
+            slowEffect.SetActive(isActive);
+        }
+    }
+
     void HandleStatusEffects()
     {
         switch (currentStatus)
         {
             case StatusEffect.None:
-                // Á¤»ó »óÅÂ: ÀÌµ¿°ú °ø°İ °¡´É
                 playerMovement.canMove = true;
                 playerMovement.canDash = true;
                 break;
 
             case StatusEffect.Dead:
-                // Á×À½ »óÅÂ: ÀÌµ¿°ú °ø°İ ºÒ°¡
                 playerMovement.canMove = false;
                 playerMovement.canDash = false;
                 gameObject.layer = LayerMask.NameToLayer("Dead");
                 anim.SetBool("isDying", true);
                 break;
 
-            case StatusEffect.Stunned:
-                // ±âÀı »óÅÂ: ÀÌµ¿°ú °ø°İ ºÒ°¡
+            case StatusEffect.Stunned:                
                 playerMovement.canMove = false;
                 playerMovement.canDash = false;
                 anim.SetTrigger("doStunned");
-                ManageStatusEffect(StatusEffect.Stunned, true);  // ½ºÅÏ ÀÌÆåÆ® È°¼ºÈ­
+                ManageStatusEffect(StatusEffect.Stunned, true);
                 break;
 
-            case StatusEffect.Immobilized:
-                // ¼Ó¹Ú »óÅÂ: ´ë½¬ ºÒ°¡, ÀÌµ¿ ºÒ°¡
+            case StatusEffect.Immobilized:              
                 playerMovement.canMove = false;
                 playerMovement.canDash = false;
+                anim.SetBool("isRun", false);
                 break;
 
-            case StatusEffect.Slow1:
-                // ½½·Î¿ì1 »óÅÂ: ÀÌµ¿ ¼Óµµ °¨¼Ò, ´ë½¬ ºÒ°¡
+            case StatusEffect.Slow1:                
                 playerMovement.moveSpeed = playerMovement.defaultSpeed * 0.5f;
                 playerMovement.canDash = false;
-                ManageStatusEffect(StatusEffect.Slow1, true);  // ½½·Î¿ì1 ÀÌÆåÆ® È°¼ºÈ­
+                ManageStatusEffect(StatusEffect.Slow1, true);
                 break;
 
-            case StatusEffect.Slow2:
-                // ½½·Î¿ì2 »óÅÂ: ÀÌµ¿ ¼Óµµ¸¸ °¨¼Ò
+            case StatusEffect.Slow2:  
                 playerMovement.moveSpeed = playerMovement.defaultSpeed * 0.5f;
-                ManageStatusEffect(StatusEffect.Slow2, true);  // ½½·Î¿ì2 ÀÌÆåÆ® È°¼ºÈ­
+                ManageStatusEffect(StatusEffect.Slow2, true);
                 break;
 
-            case StatusEffect.Knockback:
-                // ³Ë¹é Ã³¸® ·ÎÁ÷                
+            case StatusEffect.Knockback:                
                 break;
 
-            case StatusEffect.SuperArmor:
-                // ½´ÆÛ¾Æ¸Ó »óÅÂ: »óÅÂÀÌ»ó¿¡ ¸é¿ª                
+            case StatusEffect.SuperArmor:                
                 playerMovement.isKnockbackImmune = true;
                 break;
-
-                // »óÅÂÀÌ»ó °ü·Ã º¯°æ »çÇ×µµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î, PhotonView¿Í RPC°¡ ÇÊ¿ä
         }
     }
 
-    // »óÅÂÀÌ»ó ºÎ¿© ÇÔ¼ö
     public void ApplyStatusEffect(StatusEffect newStatus)
-    {
-        // »óÅÂ°¡ NoneÀÌ°Å³ª, ³Ë¹é »óÅÂ¿¡¼­´Â ´Ù¸¥ »óÅÂÀÌ»óÀ¸·Î ÀüÈ¯À» Çã¿ë (ÀÏ½ÃÀû ¸é¿ª)
-        if (currentStatus != StatusEffect.None && currentStatus != StatusEffect.Knockback) return;
+    {        
+        // í˜„ì¬ ìƒíƒœê°€ Deadì¼ ê²½ìš° ë‹¤ë¥¸ ìƒíƒœë¡œ ë³€ê²½ë˜ì§€ ì•Šë„ë¡ í•©ë‹ˆë‹¤.        
+        if (currentStatus == newStatus || currentStatus == StatusEffect.Dead) return;
 
-        // ½´ÆÛ¾Æ¸Ó »óÅÂÀÏ ¶§´Â »óÅÂÀÌ»ó Àû¿ëµÇÁö ¾ÊÀ½
-        if (currentStatus == StatusEffect.SuperArmor) return;
+        // ìŠˆí¼ì•„ë¨¸ ìƒíƒœì¼ ë•ŒëŠ” ë‹¤ë¥¸ ìƒíƒœì´ìƒì´ ì ìš©ë˜ì§€ ì•Šë„ë¡ í•©ë‹ˆë‹¤.
+        // ë‹¨, Dead ìƒíƒœë¡œëŠ” ì „í™˜ì´ ê°€ëŠ¥í•˜ê²Œ í•©ë‹ˆë‹¤.
+        if (currentStatus == StatusEffect.SuperArmor && newStatus != StatusEffect.Dead)
+        {
+            return; // Dead ìƒíƒœê°€ ì•„ë‹ˆë©´ ìƒíƒœì´ìƒì´ ì ìš©ë˜ì§€ ì•ŠìŒ.
+        }        
 
+        RemoveStatusEffect();
         currentStatus = newStatus;
-        Debug.Log("New Status: " + newStatus);
 
-        // ±âÁ¸ »óÅÂÀÌ»ó ÇØÁ¦ ÄÚ·çÆ¾ Áß´Ü
-        if (statusEffectCoroutine != null)
+        // ìƒíƒœë¥¼ ë‹¤ë¥¸ í´ë¼ì´ì–¸íŠ¸ì™€ ë™ê¸°í™”
+        photonView.RPC("UpdateStatusEffect", RpcTarget.All, (int)newStatus);
+
+        if (newStatus != StatusEffect.Slow1)
         {
-            StopCoroutine(statusEffectCoroutine);
+            float effectDuration = GetStatusEffectDuration(newStatus);
+            if (effectDuration > 0f)
+            {
+                if (statusEffectCoroutine != null)
+                {
+                    StopCoroutine(statusEffectCoroutine);
+                }
+                statusEffectCoroutine = StartCoroutine(RemoveStatusEffectAfterDelay(effectDuration));
+            }
         }
-
-        // »óÅÂº° Áö¼Ó ½Ã°£ ¼³Á¤
-        float effectDuration = GetStatusEffectDuration(newStatus);
-
-        if (effectDuration > 0f)
-        {
-            // Áö¼Ó ½Ã°£ÀÌ 0º¸´Ù Å©¸é ÇØ´ç ½Ã°£ ÈÄ¿¡ »óÅÂ ÇØÁ¦
-            statusEffectCoroutine = StartCoroutine(RemoveStatusEffectAfterDelay(effectDuration));
-        }
-
-        // »óÅÂ º¯°æµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÏ¹Ç·Î, PhotonView¿Í RPC°¡ ÇÊ¿ä
     }
 
-    // »óÅÂº° Áö¼Ó ½Ã°£À» ¹İÈ¯ÇÏ´Â ÇÔ¼ö
+    [PunRPC]
+    public void UpdateStatusEffect(int newStatus)
+    {
+        currentStatus = (StatusEffect)newStatus;
+        HandleStatusEffects();
+    }
+
     private float GetStatusEffectDuration(StatusEffect status)
     {
         switch (status)
         {
-            case StatusEffect.Slow1:
-                return 2.0f;
-            case StatusEffect.Slow2:
-                return 2.0f;
-            case StatusEffect.Knockback:
-                return 1.5f; // ³Ë¹éÀº 1.5ÃÊ µ¿¾È Áö¼Ó
-            case StatusEffect.Stunned:
-                return 1.0f; // ½ºÅÏÀº 1ÃÊ µ¿¾È Áö¼Ó
-            default:
-                return 0f; // None, Dead µîÀº Áö¼Ó ½Ã°£ÀÌ ¾øÀ¸¹Ç·Î 0 ¹İÈ¯
+            case StatusEffect.Immobilized: return 1f;
+            case StatusEffect.Slow1: return 0f;
+            case StatusEffect.Slow2: return 2.0f;
+            case StatusEffect.Knockback: return 1.5f;
+            case StatusEffect.Stunned: return 1.0f;
+            default: return 0f;
         }
     }
 
-    // »óÅÂÀÌ»ó Á¦°Å ÇÔ¼ö (Áßº¹ ÄÚµå Á¤¸®)
+    [PunRPC]
     public void RemoveStatusEffect()
     {
-        currentStatus = StatusEffect.None;
-        playerMovement.moveSpeed = playerMovement.defaultSpeed; // ÀÌµ¿ ¼Óµµ¸¦ ±âº» ¼Óµµ·Î º¹±¸
+        // ì£½ìŒ ìƒíƒœ í•´ì œ ë¶ˆê°€
+        if (currentStatus == StatusEffect.Dead)
+        {
+            return;
+        }
 
-        // ¸ğµç »óÅÂÀÌ»ó ÀÌÆåÆ®¸¦ ºñÈ°¼ºÈ­
+        currentStatus = StatusEffect.None;
+        playerMovement.moveSpeed = playerMovement.defaultSpeed;
+
+
         ManageStatusEffect(StatusEffect.Stunned, false);
         ManageStatusEffect(StatusEffect.Slow1, false);
         ManageStatusEffect(StatusEffect.Slow2, false);
 
-        // »óÅÂÀÌ»ó ÇØÁ¦µµ µ¿±âÈ­ÇØ¾ß ÇÔ: »óÅÂÀÌ»ó Á¦°Å °ü·Ã ·ÎÁ÷µµ PhotonView¿Í RPC·Î Àü¼Û
+        // ë‹¤ë¥¸ ì´ë™ ì œì•½ ì¡°ê±´ í•´ì œ
+        playerMovement.canMove = true;
+        playerMovement.canDash = true;
     }
 
-    // ÀÏÁ¤ ½Ã°£ ÈÄ »óÅÂÀÌ»óÀ» ÇØÁ¦ÇÏ´Â ÄÚ·çÆ¾
     private IEnumerator RemoveStatusEffectAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        RemoveStatusEffect();
-        Debug.Log("Status effect removed after delay");
-    }
 
-    // ³Ë¹é »óÅÂ¿¡¼­ º®¿¡ Ãæµ¹ ½Ã ½ºÅÏ »óÅÂ·Î º¯°æ
-    void OnCollisionEnter(Collision collision)
-    {
-        if (currentStatus == StatusEffect.Knockback && collision.gameObject.CompareTag("Wall"))
+        // ì£½ìŒ ìƒíƒœì¼ ê²½ìš° ìƒíƒœì´ìƒì„ ì œê±°í•˜ì§€ ì•ŠìŒ
+        if (currentStatus != StatusEffect.Dead)
         {
-            Debug.Log("º®¿¡ ºÎµúÇûÀ½!");
-            ApplyStatusEffect(StatusEffect.Stunned); // ¹Ù·Î ½ºÅÏ »óÅÂ·Î ÀüÈ¯     
-            // Ãæµ¹ ·ÎÁ÷ ¹× »óÅÂÀÌ»ó ÀüÈ¯µµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
+            photonView.RPC("RemoveStatusEffect", RpcTarget.All);
         }
     }
 
-    // ½´ÆÛ¾Æ¸Ó È°¼ºÈ­ ÇÔ¼ö (Boxer ½ºÅ³ »ç¿ë ½Ã È£Ãâ)
+    void OnCollisionEnter(Collision collision)
+    {
+        if (currentStatus == StatusEffect.Knockback && collision.gameObject.CompareTag("Untagged"))
+        {
+            photonView.RPC("ApplyStunOnCollision", RpcTarget.All);
+        }
+    }
+
+    [PunRPC]
+    public void ApplyStunOnCollision()
+    {
+        ApplyStatusEffect(StatusEffect.Stunned);
+    }
+
     public void ActivateSuperArmor()
     {
-        currentStatus = StatusEffect.SuperArmor;
-        Debug.Log("SuperArmor activated");
-        // ½´ÆÛ¾Æ¸Ó »óÅÂµµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
+        if (currentStatus == StatusEffect.SuperArmor) return;
+
+        photonView.RPC("RPCActivateSuperArmor", RpcTarget.All);
     }
 
-    // ½´ÆÛ¾Æ¸Ó ºñÈ°¼ºÈ­ ÇÔ¼ö (½ºÅ³ Áö¼Ó½Ã°£ÀÌ ³¡³¯ ¶§ È£Ãâ)
+    [PunRPC]
+    public void RPCActivateSuperArmor()
+    {
+        currentStatus = StatusEffect.SuperArmor;
+    }
+
     public void DeactivateSuperArmor()
     {
-        currentStatus = StatusEffect.None;  // ½´ÆÛ¾Æ¸Ó »óÅÂ¿¡¼­ Á¤»ó »óÅÂ·Î µ¹¾Æ°¨
-        Debug.Log("SuperArmor deactivated");
-        // ½´ÆÛ¾Æ¸Ó ºñÈ°¼ºÈ­µµ ´Ù¸¥ Å¬¶óÀÌ¾ğÆ®¿¡ µ¿±âÈ­ÇØ¾ß ÇÔ
+        if (currentStatus != StatusEffect.SuperArmor) return;
+
+        photonView.RPC("RPCDeactivateSuperArmor", RpcTarget.All);
     }
 
-    // °ø°İ ½Ã Ã¼·Â È¸º¹ ±â´É
+    [PunRPC]
+    public void RPCDeactivateSuperArmor()
+    {
+        currentStatus = StatusEffect.None;
+    }
+
     public void RestoreHealth(int amount)
     {
         currentHP += amount;
-        currentHP = Mathf.Clamp(currentHP, 0, maxHP); // Ã¼·ÂÀÌ ÃÖ´ëÄ¡¸¦ ³ÑÁö ¾Êµµ·Ï Á¦ÇÑ
-
-        // Ã¼·Â È¸º¹ ÈÄ HP ¹Ù ¾÷µ¥ÀÌÆ®
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
         UpdateHPUI();
-
-        // Ã¼·Â È¸º¹ ±â´Éµµ ³×Æ®¿öÅ© »ó¿¡ µ¿±âÈ­°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
     }
 
-    // HP UI ¾÷µ¥ÀÌÆ® ÇÔ¼ö
     private void UpdateHPUI()
     {
         if (hpBarImage != null)
         {
-            // HP ºñÀ²¿¡ µû¶ó fillAmount ¾÷µ¥ÀÌÆ®
             hpBarImage.fillAmount = (float)currentHP / maxHP;
         }
     }

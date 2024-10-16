@@ -1,8 +1,6 @@
 package com.dropzone.matchstatistics.service;
 
-import com.dropzone.matchstatistics.dto.MatchAllUserDTO;
-import com.dropzone.matchstatistics.dto.UserAllMatchDTO;
-import com.dropzone.matchstatistics.dto.UserMatchDTO;
+import com.dropzone.matchstatistics.dto.*;
 import com.dropzone.matchstatistics.entity.MatchInfoEntity;
 import com.dropzone.matchstatistics.entity.UserMatchStatisticsEntity;
 import com.dropzone.matchstatistics.entity.UserStatisticsEntity;
@@ -36,33 +34,34 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
 
     // 1. 특정 유저의 특정 매치 기록 조회
     @Override
-    public UserMatchDTO getUserMatchStatistics(int userId, int matchId) {
+    public UserMatchResponseDTO getUserMatchStatistics(int userId, int matchId) {
         UserMatchStatisticsEntity entity = repository.findByUserIdAndMatch_MatchId(userId, matchId)
                 .orElseThrow(() -> new RuntimeException("Record not found"));
-        return new UserMatchDTO(
-                entity.getUserId(),
-                entity.getCharacterId(),
-                entity.getMatch().getMatchId(),
-                entity.getMatchRank(),
-                entity.getMatchDps(),
-                entity.getMatchKills(),
-                entity.getMatchPlaytime()
-        );
+
+        UserMatchResponseDTO result = UserMatchResponseDTO.builder()
+                .userId(entity.getUserId())
+                .match_id(entity.getMatch().getMatchId())
+                .character_id(entity.getCharacterId())
+                .match_rank(entity.getMatchRank())
+                .match_kills(entity.getMatchKills())
+                .match_playtime(entity.getMatchPlaytime())
+                .build();
+
+        return result;
     }
 
     // 2. 특정 유저의 모든 매치 기록 조회
     @Override
     public UserAllMatchDTO getUserAllMatchStatistics(int userId) {
-        List<UserMatchDTO> matches = repository.findByUserId(userId).stream()
-                .map(entity -> new UserMatchDTO(
-                        entity.getUserId(),
-                        entity.getCharacterId(),
-                        entity.getMatch().getMatchId(),
-                        entity.getMatchRank(),
-                        entity.getMatchDps(),
-                        entity.getMatchKills(),
-                        entity.getMatchPlaytime()
-                ))
+        List<UserMatchResponseDTO> matches = repository.findByUserId(userId).stream()
+                .map(entity -> UserMatchResponseDTO.builder()
+                        .userId(entity.getUserId())
+                        .match_id(entity.getMatch().getMatchId())
+                        .character_id(entity.getCharacterId())
+                        .match_rank(entity.getMatchRank())
+                        .match_kills(entity.getMatchKills())
+                        .match_playtime(entity.getMatchPlaytime())
+                        .build())
                 .collect(Collectors.toList());
 
         // 매치 기록이 없으면 빈 리스트를 반환
@@ -73,16 +72,15 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
     // 3. 툭종 매치의 모든 유저 기록 조회
     @Override
     public MatchAllUserDTO getMatchAllUserStatistics(int matchId) {
-        List<UserMatchDTO> userRecords = repository.findByMatch_MatchId(matchId).stream()
-                .map(entity -> new UserMatchDTO(
-                        entity.getUserId(),
-                        entity.getCharacterId(),
-                        entity.getMatch().getMatchId(),
-                        entity.getMatchRank(),
-                        entity.getMatchDps(),
-                        entity.getMatchKills(),
-                        entity.getMatchPlaytime()
-                ))
+        List<UserMatchResponseDTO> userRecords = repository.findByMatch_MatchId(matchId).stream()
+                .map(entity -> UserMatchResponseDTO.builder()
+                        .userId(entity.getUserId())
+                        .match_id(entity.getMatch().getMatchId())
+                        .character_id(entity.getCharacterId())
+                        .match_rank(entity.getMatchRank())
+                        .match_kills(entity.getMatchKills())
+                        .match_playtime(entity.getMatchPlaytime())
+                        .build())
                 .collect(Collectors.toList());
 
         if (userRecords.isEmpty()) {
@@ -94,7 +92,7 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
 
     // 4. 매치 기록을 DB에 저장 + userStatistics 테이블에 유저 통계를 기록
     @Override
-    public void saveMatchRecords(List<MatchAllUserDTO> matchRecords) {
+    public void saveMatchRecords(List<MatchAllUserResponseDTO> matchRecords) {
 
         // 4-1. 새로운 매치 생성 (match_id는 데이터베이스가 자동 생성)
         MatchInfoEntity newMatchInfo = new MatchInfoEntity();
@@ -103,7 +101,7 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
 
         // 플레이어 수 계산
         int playerCount = 0;
-        for (MatchAllUserDTO matchRecord : matchRecords) {
+        for (MatchAllUserResponseDTO matchRecord : matchRecords) {
             playerCount += matchRecord.getUserRecords().size();  // 각 매치에 포함된 유저 수를 더함
         }
 
@@ -111,17 +109,31 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
         RankPointCalculator rankPointCalculator = new RankPointCalculator();
 
         // 4-2. 각 유저의 매치 기록 저장 및 통계 업데이트
-        for (MatchAllUserDTO matchRecord : matchRecords) {
+        for (MatchAllUserResponseDTO matchRecord : matchRecords) {
             // 매치 기록을 각 유저별로 엔티티로 변환하여 저장
             for (UserMatchDTO userMatchDTO : matchRecord.getUserRecords()) {
+
+                int getPlayTime = userMatchDTO.getMatch_playtime();
+
+                int hours = getPlayTime / 3600;
+                int minutes = (getPlayTime % 3600) / 60;
+                int seconds = getPlayTime % 60;
+
+                String timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+                Time matchPlayTime = Time.valueOf(timeString);
+
                 // 매치 기록 저장
                 UserMatchStatisticsEntity entity = new UserMatchStatisticsEntity();
                 entity.setUserId(userMatchDTO.getUserId());
                 entity.setCharacterId(userMatchDTO.getCharacter_id());
-                entity.setMatchRank(userMatchDTO.getMatch_rank());
-                entity.setMatchDps(userMatchDTO.getMatch_dps());
+                // entity.setMatchRank(userMatchDTO.getMatch_rank());
                 entity.setMatchKills(userMatchDTO.getMatch_kills());
-                entity.setMatchPlaytime(userMatchDTO.getMatch_playtime());
+                entity.setMatchPlaytime(matchPlayTime);
+
+                // 랭크가 0이면 1로 변경
+                int matchRank = userMatchDTO.getMatch_rank() == 0 ? 1 : userMatchDTO.getMatch_rank();
+                entity.setMatchRank(matchRank);
+
                 // 매치 정보 설정 (MatchInfoEntity 객체 사용)
                 entity.setMatch(newMatchInfo);
 
@@ -136,7 +148,6 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                             newUserStatistics.setUserId(userMatchDTO.getUserId());
                             newUserStatistics.setRankingPoints(100);
                             newUserStatistics.setTotalKills(0);
-                            newUserStatistics.setTotalDamage(0);
                             newUserStatistics.setTotalPlaytime(Time.valueOf("00:00:00"));
                             newUserStatistics.setTotalGames(0);
                             newUserStatistics.setTotalWins(0);
@@ -148,9 +159,8 @@ public class UserMatchStatisticsServiceImp implements UserMatchStatisticsService
                 System.out.println("계산된 점수: " + rankPointCalculator.calculateRankPoint(playerCount, userMatchDTO.getMatch_rank()));
                 userStatistics.setRankingPoints(userStatistics.getRankingPoints() + rankPointCalculator.calculateRankPoint(playerCount, userMatchDTO.getMatch_rank()));
                 userStatistics.setTotalKills(userStatistics.getTotalKills() + userMatchDTO.getMatch_kills()); // 총 킬수
-                userStatistics.setTotalDamage(userStatistics.getTotalDamage() + userMatchDTO.getMatch_dps()); // 총 딜량
 
-                long newPlaytimeMillis = userStatistics.getTotalPlaytime().getTime() + userMatchDTO.getMatch_playtime().getTime();
+                long newPlaytimeMillis = userStatistics.getTotalPlaytime().getTime() + matchPlayTime.getTime();
                 userStatistics.setTotalPlaytime(new Time(newPlaytimeMillis)); // 총 플레이시간
                 userStatistics.setTotalGames(userStatistics.getTotalGames() + 1); // 총 게임 수
 

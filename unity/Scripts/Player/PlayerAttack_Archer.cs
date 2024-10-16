@@ -1,139 +1,189 @@
 using Polyperfect.Universal;
 using System.Collections;
 using UnityEngine;
+using Photon.Pun;
+using Photon.Pun.Demo.Asteroids;
 
-public class PlayerAttack_Archer : MonoBehaviour, IAttack
+public class PlayerAttack_Archer : MonoBehaviourPun, IAttack
 {
     private Animator anim;
 
-    public GameObject[] ArrowPrefab; // ¹ß»çÃ¼ ÇÁ¸®ÆÕ
-    public GameObject[] skillArrowPrefab; // ½ºÅ³ ¹ß»çÃ¼ ÇÁ¸®ÆÕ
-    public GameObject[] chargingAttributeEffect; // Â÷Â¡ ÀÌÆåÆ®
-    private int currentAttributeIndex = 0; // ÇöÀç ¼Ó¼º ÀÎµ¦½º
+    public GameObject[] ArrowPrefab; // ë°œì‚¬ì²´ í”„ë¦¬íŒ¹
+    public GameObject[] skillArrowPrefab; // ìŠ¤í‚¬ ë°œì‚¬ì²´ í”„ë¦¬íŒ¹
+    public GameObject[] chargingAttributeEffect; // ì°¨ì§• ì´í™íŠ¸
+    private int currentAttributeIndex = 0; // í˜„ì¬ ì†ì„± ì¸ë±ìŠ¤
 
 
-    public Transform ArrowPos; // ¹ß»ç À§Ä¡
-    public float ArrowSpeed = 30f; // ¹ß»çÃ¼ ¼Óµµ
+    public Transform ArrowPos; // ë°œì‚¬ ìœ„ì¹˜
+    public float ArrowSpeed = 30f; // ë°œì‚¬ì²´ ì†ë„
 
-    
-    public float maxArrowSpeed = 50f;  // ÃÖ´ë È­»ì ¼Óµµ
-    public float maxChargeTime = 2.0f; // ÃÖ´ë Â÷Â¡ ½Ã°£
-    public float minChargeTime = 0.5f; // ÃÖ¼Ò Â÷Â¡ ½Ã°£
-    public float fireDelay = 2.5f; // °ø°İ °£°İ
+
+    public float maxArrowSpeed = 50f;  // ìµœëŒ€ í™”ì‚´ ì†ë„
+    public float maxChargeTime = 2.0f; // ìµœëŒ€ ì°¨ì§• ì‹œê°„
+    public float minChargeTime = 0.5f; // ìµœì†Œ ì°¨ì§• ì‹œê°„
+    public float fireDelay = 2.0f; // ê³µê²© ê°„ê²©
     private bool isFireReady = true;
 
-    public ParticleSystem attackEffect; // °ø°İ(¼Ò´ĞºÕ) ÀÌÆåÆ®
+    public ParticleSystem attackEffect; // ê³µê²©(ì†Œë‹‰ë¶) ì´í™íŠ¸
 
-    public WeaponManager weaponManager; // WeaponManager ÂüÁ¶
-    public PlayerMovement playerMovement; // PlayerMovement ÂüÁ¶
-    public float skillCoolDown = 5.0f; // ½ºÅ³ ÄğÅ¸ÀÓ
-    private float lastSkillTime = -100f; // ¸¶Áö¸· ½ºÅ³ »ç¿ë ½Ã°£À» ±â·Ï
-    private bool isCharging = false; // Â÷Â¡ ¿©ºÎ 
-    private float currentChargeTime = 0f; // Â÷Â¡½Ã°£ 1
+    public WeaponManager weaponManager; // WeaponManager ì°¸ì¡°
+    public PlayerMovement playerMovement; // PlayerMovement ì°¸ì¡°
+    public float skillCoolDown = 5.0f; // ìŠ¤í‚¬ ì¿¨íƒ€ì„
+    private float lastSkillTime = -100f; // ë§ˆì§€ë§‰ ìŠ¤í‚¬ ì‚¬ìš© ì‹œê°„ì„ ê¸°ë¡
+    private bool isCharging = false; // ì°¨ì§• ì—¬ë¶€ 
+    private float currentChargeTime = 0f; // ì°¨ì§•ì‹œê°„ 1
 
-    
+    public PlayerStatus playerStatus;
+
+    public AudioSource bowPullback; // ë‹¹ê¸°ëŠ” ì†Œë¦¬
+    public AudioSource bowRelease; // ì˜ëŠ” ì†Œë¦¬
+
+    private bool canAttack = true;
 
     void Awake()
     {
         anim = GetComponent<Animator>();
-        playerMovement = GetComponent<PlayerMovement>(); // PlayerMovement ÂüÁ¶
+        playerMovement = GetComponent<PlayerMovement>(); // PlayerMovement ì°¸ì¡°
         weaponManager = GetComponent<WeaponManager>();
+        playerStatus = GetComponent<PlayerStatus>();
     }
 
     void Start()
     {
-        // ½ÃÀÛÇÒ ¶§ Ã¹ ¹øÂ° ¼Ó¼º ÀÌÆåÆ®¸¸ È°¼ºÈ­
-        SwitchAttributeEffect(0);
+        // ì‹œì‘í•  ë•Œ ì²« ë²ˆì§¸ ì†ì„± ì´í™íŠ¸ë§Œ í™œì„±í™”
+        photonView.RPC("SwitchAttributeEffect", RpcTarget.All, 0);        
     }
 
     void Update()
     {
-        // °ø°İ ÄğÅ¸ÀÓ Ã³¸®
+        if(!photonView.IsMine)
+        {
+            return;
+        }
+
+        if (playerMovement.isDash || !canAttack || playerStatus.currentStatus == PlayerStatus.StatusEffect.Dead)
+        {
+            return; // canAttackì´ falseì´ê±°ë‚˜ í”Œë ˆì´ì–´ê°€ ì£½ì€ ìƒíƒœë©´ ê³µê²©í•˜ì§€ ì•ŠìŒ
+        }
+
+        // ê³µê²© ì¿¨íƒ€ì„ ì²˜ë¦¬
         fireDelay += Time.deltaTime;
         isFireReady = fireDelay >= 0.7f;
-        HandleAttributeSwitch();
 
-        // Â÷Â¡ ÁßÀÏ ¶§ ¸¶¿ì½º ¹æÇâÀ¸·Î È¸Àü
+        // WeaponManagerì˜ ë¬´ê¸° ì¸ë±ìŠ¤ë¥¼ ê°€ì ¸ì™€ ì†ì„± ì—…ë°ì´íŠ¸
+        int weaponIndex = weaponManager.GetCurrentWeaponIndex();
+        if (weaponIndex != currentAttributeIndex) // ì†ì„±ì´ ë³€ê²½ëœ ê²½ìš°ì—ë§Œ ì—…ë°ì´íŠ¸
+        {            
+            photonView.RPC("SwitchAttributeEffect", RpcTarget.All, weaponIndex);
+        }
+
+        // ì°¨ì§• ì¤‘ì¼ ë•Œ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
         if (isCharging)
         {
             currentChargeTime += Time.deltaTime;
-            playerMovement.TurnTowardsMouse(); // Â÷Â¡ Áß ¸¶¿ì½º ¹æÇâÀ¸·Î È¸Àü
+            playerMovement.TurnTowardsMouse(); // ì°¨ì§• ì¤‘ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
             playerMovement.canDash = false;
-            isFireReady = false; // Â÷Â¡ Áß °ø°İ ºÒ°¡
+            isFireReady = false; // ì°¨ì§• ì¤‘ ê³µê²© ë¶ˆê°€
 
         }
 
-        // ¿ìÅ¬¸¯(½ºÅ³) ÀÔ·Â Ã³¸®
-        if (Input.GetMouseButtonDown(1) && Time.time >= lastSkillTime + skillCoolDown && !playerMovement.isDash )
-        {
-            StartCharging();
+        // ìš°í´ë¦­(ìŠ¤í‚¬) ì…ë ¥ ì²˜ë¦¬
+        if (Input.GetMouseButtonDown(1) && Time.time >= lastSkillTime + skillCoolDown)
+        {            
+            photonView.RPC("StartCharging", RpcTarget.All);
         }
 
         if (Input.GetMouseButtonUp(1) && isCharging)
         {
-            ReleaseAndShootSkill();
+            Vector3 shootDirection = ArrowPos.forward;
+
+            photonView.RPC("ReleaseAndShootSkill", RpcTarget.All, shootDirection, currentChargeTime);            
         }
     }
 
     
     public void GetAttackInput(bool fDown)
     {
-        if (fDown && isFireReady && !playerMovement.isDash) 
+        if (fDown && isFireReady && canAttack && !playerMovement.isDash)
         {
-            StartAttack();
+            playerMovement.TurnTowardsMouse(); // ê³µê²© ì‹œì‘ ì‹œ ë§ˆìš°ìŠ¤ ë°©í–¥ìœ¼ë¡œ íšŒì „
+                                               
+            Vector3 shootDirection = ArrowPos.forward;
+
+            photonView.RPC("StartAttack", RpcTarget.All, shootDirection);
         }
     }
 
-    // ±âº» °ø°İ ·ÎÁ÷
-    public void StartAttack()
-    {        
-        playerMovement.SetRangedAttackState(true);  // ¿ø°Å¸® °ø°İ Áß ÀÌµ¿ ºÒ°¡
-        isFireReady = false; // °ø°İ Áß °ø°İ ºÒ°¡
-        playerMovement.SetAttackState(true); // °ø°İ »óÅÂ Àü´Ş
-        playerMovement.TurnTowardsMouse(); // °ø°İ ½ÃÀÛ ½Ã ¸¶¿ì½º ¹æÇâÀ¸·Î È¸Àü  
-        anim.SetTrigger("doAttack"); // °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
-        fireDelay = 0; // ÄğÅ¸ÀÓ ÃÊ±âÈ­
+    // ê³µê²© ê°€ëŠ¥ ì—¬ë¶€ ë™ê¸°í™”
+    [PunRPC]
+    public void UpdateCanAttack(bool value)
+    {
+        canAttack = value;
+    }
 
-        // ¹ß»çÃ¼ »ı¼º ¹× ¹ß»ç
-        
-        // ¼Ò´ĞºÕ ÀÌÆåÆ® ½ÇÇà
+    // ê¸°ë³¸ ê³µê²© ë¡œì§
+    [PunRPC]
+    public void StartAttack(Vector3 shootDirection)
+    {
+        if (photonView.IsMine) bowRelease.Play();
+
+        // íšŒì „ ë™ê¸°í™”: ì „ë‹¬ë°›ì€ shootDirectionìœ¼ë¡œ íšŒì „
+        transform.rotation = Quaternion.LookRotation(shootDirection);
+
+        playerMovement.SetRangedAttackState(true);  // ì›ê±°ë¦¬ ê³µê²© ì¤‘ ì´ë™ ë¶ˆê°€
+        isFireReady = false; // ê³µê²© ì¤‘ ê³µê²© ë¶ˆê°€
+        playerMovement.SetAttackState(true); // ê³µê²© ìƒíƒœ ì „ë‹¬         
+        anim.SetTrigger("doAttack"); // ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
+        fireDelay = 0; // ì¿¨íƒ€ì„ ì´ˆê¸°í™”
+
+        // ë°œì‚¬ì²´ ìƒì„± ë° ë°œì‚¬
+
+        // ì†Œë‹‰ë¶ ì´í™íŠ¸ ì‹¤í–‰
         if (attackEffect != null)
         {
             attackEffect.Play();
         }
         GameObject Arrow = Instantiate(ArrowPrefab[currentAttributeIndex], ArrowPos.position, ArrowPos.rotation);
         Rigidbody rb = Arrow.GetComponent<Rigidbody>();
+        Arrow.GetComponent<Arrow>().shooterViewID = photonView.ViewID;
+
+        // WeaponManagerë¥¼ í†µí•´ ë¬´ê¸°ì˜ ë°ë¯¸ì§€ë¥¼ ê°€ì ¸ì™€ì„œ ì„¤ì •
+        int weaponDamage = weaponManager.GetCurrentWeaponDamage();
+        //Arrow.GetComponent<Arrow>().SetDamage(weaponDamage);
+
+        Arrow arrowScript = Arrow.GetComponent<Arrow>();
+        // ì¼ë°˜ê³µê²© ë°ë¯¸ì§€ ì„¤ì •        
+        arrowScript.damage = weaponDamage;
 
         if (rb != null)
         {
-            rb.velocity = ArrowPos.forward * ArrowSpeed; // ¹ß»çÃ¼ ¼Óµµ Àû¿ë
+            rb.velocity = ArrowPos.forward * ArrowSpeed; // ë°œì‚¬ì²´ ì†ë„ ì ìš©
         }
 
-        // ÇÃ·¹ÀÌ¾î¿Í È­»ìÀÇ Ãæµ¹À» ¹«½Ã
-        Collider playerCollider = GetComponent<Collider>();  // ÇÃ·¹ÀÌ¾îÀÇ Äİ¶óÀÌ´õ °¡Á®¿À±â
-        Collider arrowCollider = Arrow.GetComponent<Collider>();  // È­»ìÀÇ Äİ¶óÀÌ´õ °¡Á®¿À±â
+        // í”Œë ˆì´ì–´ì™€ í™”ì‚´ì˜ ì¶©ëŒì„ ë¬´ì‹œ
+        Collider playerCollider = GetComponent<Collider>();  // í”Œë ˆì´ì–´ì˜ ì½œë¼ì´ë” ê°€ì ¸ì˜¤ê¸°
+        Collider arrowCollider = Arrow.GetComponent<Collider>();  // í™”ì‚´ì˜ ì½œë¼ì´ë” ê°€ì ¸ì˜¤ê¸°
         if (playerCollider != null && arrowCollider != null)
         {
             Physics.IgnoreCollision(playerCollider, arrowCollider);
         }
 
-        // WeaponManager¸¦ ÅëÇØ ¹«±âÀÇ µ¥¹ÌÁö¸¦ °¡Á®¿Í¼­ ¼³Á¤
-        int weaponDamage = weaponManager.GetCurrentWeaponDamage();
-        Arrow.GetComponent<Arrow>().SetDamage(weaponDamage);
-
-        Invoke("EndAttack", 0.3f); // 0.3ÃÊ ÈÄ °ø°İ Á¾·á
+        Invoke("EndAttack", 0.3f); // 0.3ì´ˆ í›„ ê³µê²© ì¢…ë£Œ
     }
 
-    // Â÷Â¡ ½ÃÀÛ
+    // ì°¨ì§• ì‹œì‘
+    [PunRPC]
     public void StartCharging()
-    {        
-        isCharging = true; // Â÷Â¡ »óÅÂ·Î ÀüÈ¯
-        anim.SetBool("isCharging", true); // Â÷Â¡ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÇÇà
+    {
+        if (photonView.IsMine) bowPullback.Play();
+        isCharging = true; // ì°¨ì§• ìƒíƒœë¡œ ì „í™˜
+        playerMovement.SetAttackState(true); // ì°¨ì§• ì¤‘ ì¼ ë•Œ ëŒ€ì‰¬ ë¶ˆê°€ë¥¼ ìœ„í•œ ìƒíƒœ ì „ë‹¬    
+        anim.SetBool("isCharging", true); // ì°¨ì§• ì• ë‹ˆë©”ì´ì…˜ ì‹¤í–‰
         currentChargeTime = 0f; // 1
-        playerMovement.moveSpeed /= 2f;   // Â÷Â¡ Áß ÀÌµ¿¼Óµµ °¨¼Ò                       
+        playerMovement.moveSpeed /= 2f;   // ì°¨ì§• ì¤‘ ì´ë™ì†ë„ ê°ì†Œ
 
 
-        // Â÷Â¡ ÀÌÆåÆ® ½ÇÇà
+        // ì°¨ì§• ì´í™íŠ¸ ì‹¤í–‰
         if (chargingAttributeEffect[currentAttributeIndex] != null)
         {
             ParticleSystem chargingEffect = chargingAttributeEffect[currentAttributeIndex].GetComponent<ParticleSystem>();
@@ -144,25 +194,31 @@ public class PlayerAttack_Archer : MonoBehaviour, IAttack
         }
     }
 
-    // Â÷Â¡ ÈÄ ½ºÅ³ ¹ß»ç
-    public void ReleaseAndShootSkill()
+    // ì°¨ì§• í›„ ìŠ¤í‚¬ ë°œì‚¬
+    [PunRPC]
+    public void ReleaseAndShootSkill(Vector3 shootDirection, float charegeTime)
     {
-        isCharging = false; // Â÷Â¡ ÇØÁ¦
-        lastSkillTime = Time.time; // ½ºÅ³ »ç¿ë ½Ã°£ ±â·Ï             
-        anim.SetBool("isCharging", false); // Â÷Â¡ ¾Ö´Ï¸ŞÀÌ¼Ç Á¾·á
-        playerMovement.moveSpeed *= 2f; // ÀÌµ¿¼Óµµ ¿øº¹
+        if (photonView.IsMine) bowRelease.Play();
+        // íšŒì „ ë™ê¸°í™”: ì „ë‹¬ë°›ì€ shootDirectionìœ¼ë¡œ íšŒì „
+        transform.rotation = Quaternion.LookRotation(shootDirection);
 
-        float chargePercent = Mathf.Clamp01(currentChargeTime / maxChargeTime); // 0°ú 1 »çÀÌ °ª
-        float skillArrowSpeed = Mathf.Lerp(ArrowSpeed, maxArrowSpeed, chargePercent); // È­»ì ¼Óµµ Á¶Á¤
+        isCharging = false; // ì°¨ì§• í•´ì œ
+        lastSkillTime = Time.time; // ìŠ¤í‚¬ ì‚¬ìš© ì‹œê°„ ê¸°ë¡             
+        anim.SetBool("isCharging", false); // ì°¨ì§• ì• ë‹ˆë©”ì´ì…˜ ì¢…ë£Œ
+        playerMovement.moveSpeed *= 2f; // ì´ë™ì†ë„ ì›ë³µ
 
-        // Â÷Â¡ º¸³Ê½º µ¥¹ÌÁö °è»ê (-5, 0, 5, 10, 15 ´Ü°è)
+        // ë™ê¸°í™”ëœ chargeTimeì„ ì‚¬ìš©í•˜ì—¬ ë°ë¯¸ì§€ ë° ì†ë„ ê³„ì‚°
+        float chargePercent = Mathf.Clamp01(charegeTime / maxChargeTime); // 0ê³¼ 1 ì‚¬ì´ ê°’
+        float skillArrowSpeed = Mathf.Lerp(ArrowSpeed, maxArrowSpeed, chargePercent); // í™”ì‚´ ì†ë„ ì¡°ì •
+
+        // ì°¨ì§• ë³´ë„ˆìŠ¤ ë°ë¯¸ì§€ ê³„ì‚° (-5, 0, 5, 10, 15 ë‹¨ê³„)
         int chargeBonus = CalculateDamage(chargePercent);
 
-        // WeaponManager¸¦ ÅëÇØ ¹«±âÀÇ µ¥¹ÌÁö¸¦ °¡Á®¿È
-        int weaponDamage = weaponManager.GetCurrentWeaponDamage();
+        // WeaponManagerë¥¼ í†µí•´ ë¬´ê¸°ì˜ ë°ë¯¸ì§€ë¥¼ ê°€ì ¸ì˜´
+        int weaponDamage = weaponManager.GetCurrentWeaponDamage();               
         int finalDamage = weaponDamage + chargeBonus;
-
-        // Â÷Â¡ ÀÌÆåÆ® ÁßÁö
+        
+        // ì°¨ì§• ì´í™íŠ¸ ì¤‘ì§€
         if (chargingAttributeEffect[currentAttributeIndex] != null)
         {
             ParticleSystem chargingEffect = chargingAttributeEffect[currentAttributeIndex].GetComponent<ParticleSystem>();
@@ -172,9 +228,9 @@ public class PlayerAttack_Archer : MonoBehaviour, IAttack
             }
         }
 
-        // ½ºÅ³ ¹ß»çÃ¼ »ı¼º ¹× ¹ß»ç
+        // ìŠ¤í‚¬ ë°œì‚¬ì²´ ìƒì„± ë° ë°œì‚¬
 
-        // ¼Ò´ĞºÕ ÀÌÆåÆ® ½ÇÇà
+        // ì†Œë‹‰ë¶ ì´í™íŠ¸ ì‹¤í–‰
         if (attackEffect != null)
         {
             attackEffect.Play();
@@ -182,25 +238,32 @@ public class PlayerAttack_Archer : MonoBehaviour, IAttack
 
         GameObject skillArrow = Instantiate(skillArrowPrefab[currentAttributeIndex], ArrowPos.position, ArrowPos.rotation);
         Rigidbody rb = skillArrow.GetComponent<Rigidbody>();
+        skillArrow.GetComponent<Arrow>().shooterViewID = photonView.ViewID;
+
+        Arrow arrowScript = skillArrow.GetComponent<Arrow>();
+
+        // ìµœì¢… ë°ë¯¸ì§€ ì„¤ì •        
+        arrowScript.damage = finalDamage;
+
+        //skillArrow.GetComponent<Arrow>().SetDamage(finalDamage);
 
         if (rb != null)
         {
-            rb.velocity = ArrowPos.forward * skillArrowSpeed; // ½ºÅ³ ¹ß»çÃ¼ ¼Óµµ Àû¿ë
+            rb.velocity = ArrowPos.forward * skillArrowSpeed; // ìŠ¤í‚¬ ë°œì‚¬ì²´ ì†ë„ ì ìš©
         }
 
-        // ÇÃ·¹ÀÌ¾î¿Í È­»ìÀÇ Ãæµ¹À» ¹«½Ã
-        Collider playerCollider = GetComponent<Collider>();  // ÇÃ·¹ÀÌ¾îÀÇ Äİ¶óÀÌ´õ °¡Á®¿À±â
-        Collider arrowCollider = skillArrow.GetComponent<Collider>();  // È­»ìÀÇ Äİ¶óÀÌ´õ °¡Á®¿À±â
+        // í”Œë ˆì´ì–´ì™€ í™”ì‚´ì˜ ì¶©ëŒì„ ë¬´ì‹œ
+        Collider playerCollider = GetComponent<Collider>();  // í”Œë ˆì´ì–´ì˜ ì½œë¼ì´ë” ê°€ì ¸ì˜¤ê¸°
+        Collider arrowCollider = skillArrow.GetComponent<Collider>();  // í™”ì‚´ì˜ ì½œë¼ì´ë” ê°€ì ¸ì˜¤ê¸°
         if (playerCollider != null && arrowCollider != null)
         {
             Physics.IgnoreCollision(playerCollider, arrowCollider);
         }
 
-        // ÃÖÁ¾ µ¥¹ÌÁö ¼³Á¤
-        skillArrow.GetComponent<Arrow>().SetDamage(finalDamage);
 
-        Invoke("EndAttack", 0.7f); // 0.7ÃÊ ÈÄ °ø°İ Á¾·á
+        Invoke("EndAttack", 0.3f); // 0.3ì´ˆ í›„ ê³µê²© ì¢…ë£Œ
     }
+
     private int CalculateDamage(float chargePercent)
     {
         if (chargePercent >= 1.0f)
@@ -225,52 +288,49 @@ public class PlayerAttack_Archer : MonoBehaviour, IAttack
         }
     }
 
-    // °ø°İ Á¾·á
+    // ê³µê²© ì¢…ë£Œ
     private void EndAttack()
     {    
-        playerMovement.SetRangedAttackState(false);  // ¿ø°Å¸® °ø°İ »óÅÂ ÇØÁ¦
-        playerMovement.SetAttackState(false); // °ø°İ »óÅÂ Àü´Ş
-        isFireReady = true; // °ø°İ °¡´É »óÅÂ·Î ÀüÈ¯
+        playerMovement.SetRangedAttackState(false);  // ì›ê±°ë¦¬ ê³µê²© ìƒíƒœ í•´ì œ
+        playerMovement.SetAttackState(false); // ê³µê²© ìƒíƒœ ì „ë‹¬        
     }
-    public void HandleAttributeSwitch()
+ 
+    [PunRPC]
+    private void SwitchAttributeEffect(int weaponIndex)
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            SwitchAttributeEffect(0); // 1¹ø ¼Ó¼º
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            SwitchAttributeEffect(1); // 2, 5¹ø ¼Ó¼º
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            SwitchAttributeEffect(2); // 3, 6¹ø ¼Ó¼º
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            SwitchAttributeEffect(3); // 4, 7¹ø ¼Ó¼º
-        }
-    }
+        // í‹°ì–´2ì™€ í‹°ì–´3ì˜ ê°™ì€ ì†ì„± ì¸ë±ìŠ¤ ì²˜ë¦¬
+        int attributeIndex;
 
-    private void SwitchAttributeEffect(int attributeIndex)
-    {
-        // ¹üÀ§¸¦ ³Ñ´Â ÀÎµ¦½º°¡ ÀÔ·ÂµÇÁö ¾Êµµ·Ï ¿¹¿Ü Ã³¸®
+
+        if (weaponIndex >= 4 && weaponIndex <= 6) // í‹°ì–´3 ì†ì„± 1~3ì€ í‹°ì–´2 1~3 ì†ì„± ì´í™íŠ¸ì™€ ë™ì¼
+        {
+            attributeIndex = weaponIndex - 3;
+        }
+        else if (weaponIndex < 4)  // ë‚˜ë¨¸ì§€ëŠ” ë™ì¼
+        {
+            attributeIndex = weaponIndex;
+        }
+        else
+        {
+            Debug.LogError("ì˜ëª»ëœ ë¬´ê¸° ì¸ë±ìŠ¤ì…ë‹ˆë‹¤: " + weaponIndex);
+            return;
+        }
+
+        // ë²”ìœ„ë¥¼ ë„˜ëŠ” ì¸ë±ìŠ¤ê°€ ì…ë ¥ë˜ì§€ ì•Šë„ë¡ ì˜ˆì™¸ ì²˜ë¦¬
         if (attributeIndex >= chargingAttributeEffect.Length || attributeIndex >= skillArrowPrefab.Length || attributeIndex >= ArrowPrefab.Length)
             return;
 
-        // ¸ğµç ¼Ó¼º °ø°İ ÀÌÆåÆ®¸¦ ºñÈ°¼ºÈ­ÇÏ°í ¼±ÅÃÇÑ ¼Ó¼º °ø°İ ÀÌÆåÆ®¸¸ È°¼ºÈ­
+        // ì°¨ì§• ì´í™íŠ¸ ë³€ê²½
         for (int i = 0; i < chargingAttributeEffect.Length; i++)
         {
-            chargingAttributeEffect[i].SetActive(i == attributeIndex);
-            ArrowPrefab[i].SetActive(i == attributeIndex);
-            skillArrowPrefab[i].SetActive(i == attributeIndex);
+            chargingAttributeEffect[i].SetActive(i == attributeIndex);                        
         }
 
-        // ÇöÀç ¼Ó¼º ÀÎµ¦½º¸¦ ¾÷µ¥ÀÌÆ®
+        // í˜„ì¬ ì†ì„± ì¸ë±ìŠ¤ë¥¼ ì—…ë°ì´íŠ¸
         currentAttributeIndex = attributeIndex;
     }
 
-    // IAttack ÀÎÅÍÆäÀÌ½º ±¸Çö
+    // IAttack ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„
     public float GetSkillCooldown()
     {
         return skillCoolDown;

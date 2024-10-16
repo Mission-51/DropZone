@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface UserRankRepository extends JpaRepository<UserStatisticsEntity, Integer> {
 
@@ -17,4 +19,9 @@ public interface UserRankRepository extends JpaRepository<UserStatisticsEntity, 
     // 유저의 랭킹을 계산하는 쿼리
     @Query("SELECT COUNT(u) + 1 FROM UserStatisticsEntity u WHERE (u.rankingPoints > :rankingPoints OR (u.rankingPoints = :rankingPoints AND u.totalWins > :totalWins))")
     int findUserRank(int rankingPoints, int totalWins);
+
+    @Query("SELECT u FROM UserStatisticsEntity u WHERE u.userId = :userId")
+    UserStatisticsEntity findUserStatisticsByUserId(int userId);
+
+    List<UserStatisticsEntity> findAllByOrderByRankingPointsDescTotalWinsDesc();
 }

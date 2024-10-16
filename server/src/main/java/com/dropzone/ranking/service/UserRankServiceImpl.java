@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,14 +37,44 @@ public class UserRankServiceImpl implements UserRankService {
     }
 
     private List<UserRankDTO> getPageableRankings(Pageable pageable) {
-        Page<UserStatisticsEntity> rankingPage = userRankRepository.findAllRankings(pageable);
+        // 1. 전체 유저 데이터를 점수로 정렬하여 가져옴
+        List<UserStatisticsEntity> allRankings = userRankRepository.findAllByOrderByRankingPointsDescTotalWinsDesc();
 
-        return IntStream.range(0, rankingPage.getContent().size())
-                .mapToObj(i -> {
-                    UserStatisticsEntity user = rankingPage.getContent().get(i);
-                    return new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(),
-                            pageable.getPageNumber() * pageable.getPageSize() + i + 1);
-                })
-                .collect(Collectors.toList());
+        List<UserRankDTO> result = new ArrayList<>();
+        int currentRank = 1; // 현재 유저의 등수를 1등부터 시작
+
+        // 2. 전체 유저의 순위를 계산
+        for (int i = 0; i < allRankings.size(); i++) {
+            UserStatisticsEntity user = allRankings.get(i);
+
+            // 현재 유저와 이전 유저의 점수가 다르면 순위 증가
+            if (i > 0 && (user.getRankingPoints() != allRankings.get(i - 1).getRankingPoints())) {
+                currentRank++; // 점수가 다를 때만 순위 증가
+            }
+
+            result.add(new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(), currentRank));
+        }
+
+        // 3. 해당 페이지의 데이터를 반환 (페이지 요청에 맞게 잘라서 반환)
+        int start = pageable.getPageNumber() * pageable.getPageSize();
+        int end = Math.min(start + pageable.getPageSize(), result.size());
+
+        return result.subList(start, end); // 요청한 페이지의 데이터를 반환
+    }
+
+
+    @Override
+    public UserRankDTO getUserRank(int userId) {
+        UserStatisticsEntity user = userRankRepository.findUserStatisticsByUserId(userId);
+
+        if (user == null) {
+            throw new IllegalArgumentException("유저를 찾을 수 없습니다.");
+        }
+
+        // 유저의 랭킹 계산
+        int userRank = userRankRepository.findUserRank(user.getRankingPoints(), user.getTotalWins());
+
+        // UserRankDTO로 반환
+        return new UserRankDTO(user.getUserId(), user.getRankingPoints(), user.getTotalWins(), userRank);
     }
 }
