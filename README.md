@@ -3,7 +3,7 @@
 </div>
 
 <h3 style="text-align: center;">SSAFY 11기 2학기 특화 프로젝트</h3>
-<h2>2024.08.26 ~ 2024.10.11</h2>`
+<h2>2024.08.26 ~ 2024.10.11</h2>
 </br>
 
 <div align="center">
